@@ -69,3 +69,9 @@ src/Libraries/glm
 
 #game shortcut
 SSHOCK.lnk
+# Local Linux build outputs and imported game data
+/build-linux/
+/mixer-build/
+/res/
+/systemshock
+/run.log

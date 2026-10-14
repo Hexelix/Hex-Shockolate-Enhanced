@@ -244,6 +244,20 @@ void EDMS_get_state(physics_handle ph, State *s) {
 //	that the transport coordinate is not dangerous, for now.  Later, perhaps,
 //	it should make sure of this itself, since this is not a real-time kind of function...
 //	========================================================
+void EDMS_rotate_player_yaw(physics_handle ph, fix delta) {
+    if (ph < 0 || ph >= MAX_OBJ)
+        return;
+    const int on = physics_handle_to_object_number(ph);
+    if (on < 0 || on >= MAX_OBJ || I[on][IDOF_MODEL] != PELVIS)
+        return;
+
+    // The pelvis uses Euler angles. Only change yaw; teleporting also clears
+    // beta/gamma derivatives and stalls leaning/stance changes during a turn.
+    Q turn;
+    turn.fix_to(delta);
+    S[on][3][0] += turn;
+}
+
 void EDMS_holistic_teleport(physics_handle ph, State *s) {
     if (ph > -1) {
         int on = physics_handle_to_object_number(ph); // Who are youuuu...

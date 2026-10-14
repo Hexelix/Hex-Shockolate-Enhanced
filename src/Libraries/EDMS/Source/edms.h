@@ -149,6 +149,8 @@ void EDMS_get_state(physics_handle ph, State *s);
 void EDMS_startup(EDMS_data *D);
 void EDMS_kill_object(physics_handle ph);
 void EDMS_holistic_teleport(physics_handle ph, State *s);
+// Turn the player without resetting lean/stance angular velocities.
+void EDMS_rotate_player_yaw(physics_handle ph, fix delta);
 
 //	Object packages...
 //	==================

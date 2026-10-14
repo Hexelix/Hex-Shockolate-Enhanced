@@ -773,7 +773,11 @@ void slow_proj_hit(ObjID id, ObjID victim) {
         dtype = SpecialGunProps[SCTRIP(weapon_triple)].damage_type;
     }
     if (weapon_triple == RAILGUN_TRIPLE) {
-        do_explosion(loc, id, 0, &(game_explosions[1]));
+        // Copy the profile so other explosion users retain their balance.
+        ExplosionData rail_explosion = game_explosions[1];
+        rail_explosion.damage_mod *= 2;
+        rail_explosion.damage_change *= 2;
+        do_explosion(loc, id, 0, &rail_explosion);
         play_digi_fx_obj(SFX_EXPLOSION_1, 1, id);
     } else if (victim == OBJ_NULL) {
         while (current_ref != OBJ_REF_NULL) {
@@ -1166,6 +1170,9 @@ ubyte player_attack_object(ObjID target, int wpn_triple, int power_level, Combat
         return (0);
         break;
     }
+    // Scale base damage before charge, armor and the normal random roll.
+    if (wpn_triple == PLASMABEAM_TRIPLE || wpn_triple == RAILGUN_TRIPLE)
+        damage_mod *= 2;
     effect_row = effect_matrix[effect_class][attack_effect_type];
     dead = attack_object(target, dtype, damage_mod, offense, penet, flags, power_level, effect_row, &effect,
                          attack_effect_type, &damage_inflicted);

@@ -1,3 +1,20 @@
+# Hex-Shockolate-Enhanced
+
+Based on [MeeperTheGreat99/systemshock-enhanced](https://github.com/MeeperTheGreat99/systemshock-enhanced), itself derived from Shockolate. Original history and licensing are preserved.
+
+This fork adds:
+
+- Horizontal mouselook that preserves lean and stance angular velocities.
+- Double medi-patch regeneration at every stage, retaining the original taper and random expiration.
+- Double plasma-gun base damage and railgun explosion damage, including its distance falloff and self-damage.
+- Linux build scripts, a game-data importer, and focused regression tests.
+
+Inventory capacity is unchanged. The Linux build and focused regression tests passed; an in-game Steam Deck playtest remains outstanding. Purchased original game assets are required and are not included.
+
+For a standard Linux build, install CMake, a C/C++ compiler, pkg-config, SDL2/SDL2_mixer development packages and OpenGL development headers, then run `sh linux/build.sh`. See [Linux setup and validation notes](linux/README-build.txt) for package instructions and limitations. The static-mixer build script expects a sibling SDL_mixer source checkout as described there.
+
+## Upstream documentation
+
 System Shock Enhanced - based on Shockolate
 ============================
 Based on the source code for PowerPC released by Night Dive Studios, Incorporated.

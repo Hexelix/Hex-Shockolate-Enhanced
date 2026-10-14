@@ -458,8 +458,9 @@ void drug_medic_wearoff();
 #define MEDIC_DECAY_RATE 8
 #define MEDIC_HEAL_STEPS 10
 // ushort medic_heal_rates[] = { 10,50,55,105,210} ;
-ushort medic_heal_rates[] = {5, 5, 25, 25, 25, 30, 50, 55, 100, 110};
-#define MEDIC_HEAL_RATE 430
+// Double every stage, including the cleanup decrements, preserving the curve.
+ushort medic_heal_rates[] = {10, 10, 50, 50, 50, 60, 100, 110, 200, 220};
+#define MEDIC_HEAL_RATE 860
 
 // ---------------------------------------------------------------------------
 // drug_medic_use()
