@@ -58,9 +58,9 @@ typedef uint8_t MFD_Status;
 #define MFD_UNAVAIL 3
 
 #define DEFAULT_FATIGUE_REGEN 50
-#define NUM_WEAPON_SLOTS 7
+#define NUM_WEAPON_SLOTS 9
 #define EMPTY_WEAPON_SLOT 0xFF
-#define NUM_GENERAL_SLOTS 14
+#define NUM_GENERAL_SLOTS 28
 
 typedef enum {
     ACTIVE_WEAPON = 0,
@@ -76,7 +76,7 @@ typedef enum {
     NUM_ACTIVES = 10
 } Actives;
 
-#define PLAYER_VERSION_NUMBER ((int)6)
+#define PLAYER_VERSION_NUMBER ((int)7)
 
 // Some questbitty stuff
 #define NUM_QUESTBITS 512
@@ -136,6 +136,7 @@ typedef struct _Player {
     uint32_t game_time;
     uint32_t last_second_update; // when was last do_stuff_every_second
     uint32_t last_drug_update;
+    uint32_t berserk_started_at; // game-time ticks; saved with the active dose
     uint32_t last_ware_update;
     uint32_t last_anim_check;
     int queue_time;

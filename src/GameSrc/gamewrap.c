@@ -337,6 +337,13 @@ errtype load_game(char *fname) {
     old_plr = player_struct.rep;
     orig_lvl = player_struct.level;
 
+    if (!ResInUse(SAVE_GAME_ID_BASE + 1) ||
+        (gResDesc[SAVE_GAME_ID_BASE + 1].fsize != PlayerLayout_M32.dsize &&
+         gResDesc[SAVE_GAME_ID_BASE + 1].fsize != PlayerLayout_M64.dsize)) {
+        ERROR("Incompatible save: start a new game for the expanded inventory build.");
+        ResCloseFile(filenum);
+        return ERR_FREAD;
+    }
     ResExtract(SAVE_GAME_ID_BASE + 1, FORMAT_PLAYER, (void *)&player_struct);
 
     obj_check_time = 0; // KLC - added because it needs to be reset for Mac version.

@@ -15,10 +15,10 @@ int main(void) {
     player_struct.hit_points_regen=7;
     drug_medic_use();
     int expected=430;
-    assert(player_struct.hit_points_regen==7+2*expected);
+    assert(player_struct.hit_points_regen==7+(3*expected+1)/2);
     for(int n=9;n>=0;--n) {
         drug_medic_effect(); expected-=old_rates[n];
-        assert(player_struct.hit_points_regen==7+2*expected);
+        assert(player_struct.hit_points_regen==7+(3*expected+1)/2);
     }
     assert(player_struct.drug_intensity[DRUG_MEDIC]==0);
     assert(player_struct.hit_points_regen==7);
@@ -26,5 +26,5 @@ int main(void) {
     drug_medic_wearoff();
     assert(player_struct.hit_points_regen==7);
     assert(player_struct.drug_intensity[DRUG_MEDIC]==0);
-    puts("PASS medic: every stage doubles; single and overlapping doses clean up fully");
+    puts("PASS medic: every stage is 1.5x (rounded); single and overlapping doses clean up fully");
 }

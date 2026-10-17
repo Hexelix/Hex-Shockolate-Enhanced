@@ -1,110 +1,98 @@
-SYSTEM SHOCK ENHANCED — LINUX TEST BUILD
+HEX-SHOCKOLATE-ENHANCED — EXPANDED INVENTORY LINUX BUILD (v0.2)
 
-Based on MeeperTheGreat99/systemshock-enhanced commit
-87ba0a0f4505675c6f96a53f3bc2d6add8c48960 (GPL-3.0-or-later).
-This is a separate native source-port build, not a replacement for Nightdive's
-sekhmet_x64.exe. Original purchased game data is required and is not included.
+Repository: https://github.com/Hexelix/Hex-Shockolate-Enhanced
+Based on MeeperTheGreat99/systemshock-enhanced, derived from Shockolate.
+GPL-3.0-or-later. Purchased original game data is required and not included.
 
-CHANGES
-* Horizontal mouselook changes only the player's yaw. It no longer uses the
-  teleport operation that cleared angular velocities and interrupted leaning
-  and stance changes. Cyberspace controls retain their original path.
-* Medi-patches: double regeneration at each stage, including stacked-dose
-  decay and wearoff cleanup. The original taper, random expiration, fatigue
-  influence, health cap and rounding remain. Total healing is not fixed.
-* Plasma gun: twice the loaded base damage before charge/armor/random damage.
-* Railgun: explosion damage 100 -> 200 and distance decrement 80 -> 160.
-  Radius and ammunition use are unchanged. Splash damage to you also rises.
-  Its direct-hit calculation, if used, receives the same base multiplier.
-  Armor, difficulty, charge and rounding mean displayed damage need not be
-  exactly twice on every individual hit.
-* General-item and weapon inventory limits are unchanged in this build.
+CHANGES IN THIS BUILD
+* General inventory: 28 slots (formerly 14), shown as two pages of 14 items.
+* Weapons: nine slots (formerly seven), shown as seven weapons then two.
+* Use Page Up / Page Down, scroll the wheel over the inventory, or click the
+  active Weapons/General category button again to switch pages. Titles show
+  1/2 or 2/2. Grenades and patches remain visible on both weapon pages.
+  Selecting a weapon or general item reveals its page automatically.
+  Tab / Shift+Tab and weapon-wheel cycling include all nine weapon slots.
+* Medi-patches: 1.5x original regeneration (reduced from the earlier 2x).
+  The initial regeneration value is 645 rather than 430. The cumulative taper
+  is rounded to whole units at each stage and cleanup returns to zero.
+  Original random expiration, rounding and maximum-health cap still apply.
+* Berserk patches: 60 seconds of game time, unaffected by random decay or
+  fatigue. Another dose refreshes the remaining duration to 60 seconds.
+  Pausing does not spend game time; saving/loading preserves remaining time.
+  Detox can still remove berserk early, as before.
+* Retains the mouselook leaning/stance fix and 2x railgun/plasma base damage.
+  Railgun splash damage to you is increased too; radius/ammo cost unchanged.
 
-STEAM DECK SETUP (DESKTOP MODE)
-1. Extract the archive somewhere separate, e.g. /home/deck/Games/SS-Enhanced.
-   The folder containing this README must also contain systemshock, launch.sh
-   and import-data.py. Do not replace the installed Nightdive executable.
-2. In Steam, browse the original game's installed files to locate sshock.kpf.
-3. Open a terminal in this extracted folder and run:
+START A NEW GAME
+The expanded slots and berserk timer use a new player-save layout. Saves from
+Nightdive, upstream Shockolate and the earlier seven-weapon build are not
+compatible. Keep your old installation/saves in a separate folder. This
+build rejects older player resource sizes rather than loading them as new.
+
+STEAM DECK SETUP — DESKTOP MODE
+1. Extract this archive into its own folder, such as
+   /home/deck/Games/Hex-Shockolate-Enhanced-v0.2.
+2. Browse the Steam Enhanced Edition installation to locate sshock.kpf.
+   Open a terminal in the extracted folder and run:
      python3 import-data.py "/full/path/to/sshock.kpf"
-   Alternatively provide the original CD/Classic SSHOCK folder containing
-   DATA and SOUND. The importer copies into res/data and res/sound with
-   lowercase filenames. It does not alter the originals. HD data overrides
-   matching CD-ROM data inside a KPF. If the layout is not recognized, it
-   stops with a missing-files message rather than starting an incomplete game.
-4. Run:
+   Alternatively provide the original CD/Classic SSHOCK directory containing
+   DATA and SOUND. The importer copies files into res/data and res/sound;
+   it does not modify the originals. You can also copy the res folder from
+   your previous source-port setup. Do not copy its saves/preferences.
+3. Run:
      chmod +x systemshock launch.sh
      ./launch.sh -fullscreen
-5. Add launch.sh as a Non-Steam Game. Set Start In to this extracted folder.
-   Leave forced Proton compatibility OFF: this is a native Linux executable.
-   Set Steam Input to keyboard/mouse bindings. Useful bindings: F toggles
-   mouselook, Q/E lean, T/G/B stand/crouch/prone, WASD move, C quick pickup.
-   Use a trackpad/right stick as mouse and map the remaining keys as desired.
+4. Add launch.sh as a Non-Steam Game. Set Start In to this extracted folder.
+   Leave forced Proton compatibility OFF; this is a native Linux executable.
+   Use Steam Input keyboard/mouse bindings: WASD movement, F mouselook,
+   Q/E lean, T/G/B stand/crouch/prone, C quick pickup, Tab/Shift+Tab weapon
+   cycling. Bind Page Up/Down to spare buttons for the new inventory pages.
+5. Begin a NEW GAME, then test the expanded inventory before a long session.
 
-The launch script writes output to run.log in this folder. Saves/preferences
-belong to this port; begin a new game. Nightdive save compatibility is not
-promised. To undo, remove this Non-Steam shortcut and folder; the original
-Steam installation is untouched.
+The launcher writes run.log in this folder. If required game data is missing,
+it stops with a message. The original Steam installation remains separate.
 
-BUILD FEATURES / REQUIREMENTS
-Linux x86-64; glibc >= 2.34; a libstdc++ providing GLIBCXX_3.4.29; SDL2;
-OpenGL runtime. SDL_mixer 2.8.0 is statically linked into the executable.
-Sound effects and the built-in AdLib music synthesizer are included.
-FluidSynth soundfonts and native ALSA MIDI output are disabled in this package.
-No Steam Deck hardware, Gamescope, or controller playtest was available.
-Use the host SteamOS runtime first; older Steam Linux Runtime containers may
-provide a glibc older than this binary requires.
+BUILD / DEPENDENCIES
+Linux x86-64. Requires glibc >= 2.34, libstdc++ with GLIBCXX_3.4.29, SDL2 and
+OpenGL. SDL_mixer 2.8.0 is statically linked. Built-in AdLib music and effects
+are included; FluidSynth and native ALSA MIDI output are disabled. Original
+SOUND assets are needed for music. The binary uses the same dependency
+arrangement as the earlier package and has no build-directory RPATH.
 
-VALIDATION
-* Release build completed; final executable has no unresolved shared libraries
-  in the Linux build environment and no build-directory RPATH.
-* Tests compiled the actual EDMS implementation: 1,000 yaw updates preserve
-  all other physics state, including lean/stance derivatives. Invalid handles
-  and non-player physics models are ignored.
-* Tests compiled actual medic functions: all ten rates are twice baseline;
-  single and overlapping doses return to the prior regeneration value.
-* Asset importer checked with a synthetic KPF for HD/CD-ROM precedence,
-  filename normalization, sound paths and traversal rejection.
-* Weapon paths were reviewed in source; no in-game damage measurement yet.
-* Startup reached original resource loading, but game assets were unavailable
-  for this session. Running the underlying binary without assets crashes in
-  the upstream resource loader; launch.sh checks for required data first.
-  This is an experimental build, not a completed gameplay validation.
-
-FIRST PLAYTEST
-Start a new game. Hold Q or E and move the mouse continuously left/right;
-lean should still develop. Repeat with T/G/B stance changes. Check returning
-to neutral, collision near walls and toggling mouselook. For healing, test
-while sufficiently injured to avoid the health cap; let the effect finish
-and confirm regeneration stops. For weapons, test the same enemy/difficulty
-and plasma charge level; allow for the game's normal random damage.
-
-SOURCE / REBUILD
-source/systemshock-enhanced contains the complete modified port source,
-focused regression tests, and linux/build.sh. See source/changes.patch for
-tracked-source changes against the commit above. Added tests/ and linux/
-files are supplied in full. No proprietary game assets are included.
-
-On a normal Debian/Ubuntu development system install build-essential, cmake,
-pkg-config, libsdl2-dev, libsdl2-mixer-dev and libgl-dev, then run:
+Source is included under source/systemshock-enhanced. Standard Debian/Ubuntu
+build prerequisites: build-essential, cmake, pkg-config, libsdl2-dev,
+libsdl2-mixer-dev and libgl-dev. Run:
   sh source/systemshock-enhanced/linux/build.sh
-That convenient rebuild uses the system SDL_mixer shared library. To reproduce
-the packaged dependency arrangement, use the included SDL_mixer source:
-  cmake -S source/SDL_mixer -B mixer-build -DBUILD_SHARED_LIBS=OFF \
-    -DSDL2MIXER_SAMPLES=OFF -DSDL2MIXER_FLAC=OFF -DSDL2MIXER_MOD=OFF \
-    -DSDL2MIXER_MIDI=OFF -DSDL2MIXER_OPUS=OFF -DSDL2MIXER_VORBIS=OFF \
-    -DSDL2MIXER_WAVPACK=OFF -DCMAKE_BUILD_TYPE=Release
-  cmake --build mixer-build --parallel
-The complete static-mixer build is also automated by:
+This uses the system SDL_mixer shared library. To build the static SDL_mixer
+arrangement supplied here, instead run:
   sh source/systemshock-enhanced/linux/build-static-mixer.sh
-Use a fresh build directory when switching between build methods/compilers.
+The included sibling source/SDL_mixer directory supplies its source.
+Use a fresh build directory when switching build methods/compilers.
+The delivered binary uses GCC 13.3 (C), GCC 11.4 (C++) and Ubuntu 22.04
+libc development headers for its runtime baseline. Rebuilding on another
+system can change the required runtime versions.
 
-The delivered binary was compiled with GCC 13.3 (C), GCC 11.4 (C++), and
-Ubuntu 22.04 glibc development headers to avoid newer library symbol demands.
-It links dynamically to system SDL2/OpenGL/libstdc++/glibc. A rebuild on a
-newer distribution may require newer runtime versions.
+VALIDATION / LIMITS
+Release build completed. Focused tests compile production code and cover:
+* Lean/stance physics state surviving 1,000 mouse yaw updates.
+* All 1.5x medic taper stages and cleanup of overlapping doses.
+* Berserk's one-minute boundary, refreshed doses, timer wraparound, and its
+  exemption from random/fatigue decay.
+* Encoding/decoding all 28 general slots, nine weapons, active selections,
+  remaining berserk time, and the declared player-save resource size.
+* Inventory page wrapping, row mapping through slot 28, selecting the final
+  slots, blank rows on weapon page two, and forward/backward weapon cycling.
+Tests are rerunnable with:
+  python3 source/systemshock-enhanced/tests/run.py /absolute/path/to/build
+
+No in-game or Steam Deck hardware playtest was available. These checks do
+not replace one. First test acquiring items/weapons past the original limits,
+switching pages, using/dropping the last slots, changing level, and saving/
+loading them. Then time a berserk dose, save halfway through it and reload;
+it should expire after the remaining game time. Test healing below the cap.
+The larger player record intentionally ends old-save compatibility.
 
 LICENSES
-The port is GPL-3.0-or-later; see COPYING.txt and source file notices.
-SDL_mixer is zlib-licensed; its source and LICENSE.txt are included.
-Bundled third-party code retains its original notices and licenses.
+The port is GPL-3.0-or-later: see COPYING.txt and source-file notices.
+SDL_mixer is zlib-licensed; source/SDL_mixer/LICENSE.txt is included.
+Other bundled code retains its original notices and licenses.

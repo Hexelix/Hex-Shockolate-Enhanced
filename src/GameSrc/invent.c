@@ -197,7 +197,7 @@ ubyte _bttn_state2color[] = {
 #define NUM_PAGE_BUTTONS 6
 
 // Page stuff
-#define WEAPON_PAGES      1
+#define WEAPON_PAGES      ((NUM_WEAPON_SLOTS + WEAPONS_PER_PAGE - 1) / WEAPONS_PER_PAGE)
 #define WEAPONS_PER_PAGE  7
 #define DRUG_PAGES        1
 #define DRUGS_PER_PAGE    7
@@ -302,6 +302,42 @@ uchar show_all_actives = FALSE;
 // The last page we drew
 short inv_last_page = INV_BLANK_PAGE;
 
+// Keep the seven-row interface and page the expanded lists inside each category.
+static int weapon_subpage, general_subpage;
+
+int inventory_subpage(int category) {
+    if (category == INV_MAIN_PAGE) return weapon_subpage;
+    if (category == INV_GENERAL_PAGE) return general_subpage;
+    return 0;
+}
+
+int inventory_subpage_count(int category) {
+    if (category == INV_MAIN_PAGE) return WEAPON_PAGES;
+    if (category == INV_GENERAL_PAGE)
+        return (NUM_GENERAL_SLOTS + 2 * ITEMS_PER_PAGE - 1) / (2 * ITEMS_PER_PAGE);
+    return 1;
+}
+
+uchar inventory_turn_page(int direction) {
+    int count = inventory_subpage_count(inventory_page);
+    int *page = inventory_page == INV_MAIN_PAGE ? &weapon_subpage : &general_subpage;
+    if (count <= 1) return FALSE;
+    *page = (*page + (direction < 0 ? count - 1 : 1)) % count;
+    inv_last_page = INV_BLANK_PAGE;
+    INVENT_CHANGED;
+    return TRUE;
+}
+
+static void inventory_reveal_slot(int category, int slot) {
+    int *page = category == INV_MAIN_PAGE ? &weapon_subpage : &general_subpage;
+    int newpage = slot / (category == INV_MAIN_PAGE ? WEAPONS_PER_PAGE : 2 * ITEMS_PER_PAGE);
+    if (*page != newpage) {
+        *page = newpage;
+        inv_last_page = INV_BLANK_PAGE;
+    }
+}
+
+
 LGRegion *inventory_region;
 extern LGRegion *inventory_region_game, *inventory_region_full;
 LGRegion **all_inventory_regions[] = {&inventory_region_game, &inventory_region_full};
@@ -310,8 +346,8 @@ LGRegion **all_inventory_regions[] = {&inventory_region_game, &inventory_region_
 
 static struct _weapon_list_state {
     ubyte active;
-    weapon_slot slots[WEAPON_PAGES * WEAPONS_PER_PAGE];
-    ubyte ammo_available[WEAPON_PAGES * WEAPONS_PER_PAGE];
+    weapon_slot slots[NUM_WEAPON_SLOTS];
+    ubyte ammo_available[NUM_WEAPON_SLOTS];
 } weapon_list;
 
 quantity_state generic_lines[48];
@@ -637,7 +673,7 @@ int get_item_at_pixrow(inv_display *dp, int row) {
         return -1;
     //   Warning(("row = %d = (%d - %d + %d + %d) = %d / %d\n",row,r1,ipanel_y,dp->top,y_step,r2,y_step));
 
-    return linenum + row;
+    return linenum + row < dp->listlen ? linenum + row : -1;
 }
 
     // --------------------
@@ -706,6 +742,8 @@ void draw_weapons_list(inv_display *dp) {
     if (newpage) {
         gr_set_fcolor(dp->titlecolor);
         get_string(REF_STR_WeaponTitle, buf, BUFSZ);
+        // A short page hint fits beside the title at the original resolution.
+        strncat(buf, weapon_subpage == 0 ? " 1/2" : " 2/2", BUFSZ - strlen(buf) - 1);
         draw_inventory_string(buf, WEAPON_X, TOP_MARGIN, TRUE);
         get_string(REF_STR_AmmoTitle, buf, BUFSZ);
         draw_inventory_string(buf, AMMO_X - gr_string_width(buf), TOP_MARGIN, TRUE);
@@ -749,8 +787,9 @@ uchar inventory_select_weapon(inv_display *dp, int w) {
     inv_display *newdisp;
     newdisp = dp;
 #endif // NO_DUMMIES
-    if (player_struct.weapons[w].type == EMPTY_WEAPON_SLOT)
+    if (w < 0 || w >= NUM_WEAPON_SLOTS || player_struct.weapons[w].type == EMPTY_WEAPON_SLOT)
         goto out;
+    inventory_reveal_slot(INV_MAIN_PAGE, w);
     if (aw != w) {
         weapon_slot *ws = &player_struct.weapons[w];
         play_digi_fx(SFX_INVENT_SELECT, 1);
@@ -783,7 +822,8 @@ ubyte weapons_add_func(inv_display *dp, int row, ObjID *objP, uchar select) {
     weapon_slot tmp;
     ObjSpecID spec;
     play_digi_fx(SFX_INVENT_ADD, 1);
-    row += dp->pgsize * dp->relnum;
+    // Mouse hit-testing already returns an absolute slot index.
+    // The -1 used for automatic pickup must remain -1 on every page.
     if (player_struct.weapons[NUM_WEAPON_SLOTS - 1].type == EMPTY_WEAPON_SLOT)
         row = NUM_WEAPON_SLOTS - 1;
     if (row < 0 || row >= NUM_WEAPON_SLOTS || player_struct.weapons[row].type == EMPTY_WEAPON_SLOT) {
@@ -1433,6 +1473,8 @@ void draw_general_list(inv_display *dp) {
     if (newpage) {
         gr_set_fcolor(dp->titlecolor);
         get_string(dp->titlenum, buf, BUFSZ);
+        if (dp->titlenum == REF_STR_GeneralTitle)
+            strncat(buf, general_subpage == 0 ? " 1/2" : " 2/2", BUFSZ - strlen(buf) - 1);
         draw_inventory_string(buf, dp->left, dp->top, TRUE);
     }
     s = dp->relnum * dp->pgsize;
@@ -1655,8 +1697,9 @@ void general_drop_func(inv_display *dp, int row) {
 
 uchar inv_select_general(inv_display *dp, int w) {
     uchar retval = FALSE;
-    if (player_struct.inventory[w] == OBJ_NULL)
+    if (w < 0 || w >= NUM_GENERAL_SLOTS || player_struct.inventory[w] == OBJ_NULL)
         goto out;
+    inventory_reveal_slot(INV_GENERAL_PAGE, w);
     player_struct.actives[dp->activenum] = w;
     set_inventory_mfd(dp->mfdtype, w, TRUE);
     INVENT_CHANGED;
@@ -2177,6 +2220,10 @@ uchar inventory_mouse_handler(uiEvent *ev, LGRegion *r, intptr_t data) {
     }
     if (full_game_3d && !(full_visible & FULL_INVENT_MASK))
         return FALSE;
+    if ((ev->mouse_data.action & (MOUSE_WHEELUP | MOUSE_WHEELDN)) &&
+        inventory_turn_page(ev->mouse_data.action & MOUSE_WHEELUP ? -1 : 1))
+        return TRUE;
+
     if (full_game_3d && !(ev->mouse_data.buttons & (1 << MOUSE_RBUTTON))) {
         if (!(ev->mouse_data.action & ~MOUSE_MOTION))
             return FALSE;
@@ -2308,6 +2355,11 @@ uchar pagebutton_mouse_handler(uiEvent *ev, LGRegion *r, intptr_t data) {
         int i = cnum;
         short x = FIRST_BTTN_X + i * BUTTON_X_STEP;
         if (pos.x >= x && pos.x < x + INVENT_BTTN_WD && page_button_state[i] != BttnDummy) {
+            if (i == inventory_page && (!full_game_3d || (full_visible & FULL_INVENT_MASK)) &&
+                inventory_turn_page(1)) {
+                play_digi_fx(SFX_INVENT_BUTTON, 1);
+                return TRUE;
+            }
             if (full_game_3d) {
                 if (i == inventory_page && full_visible & FULL_INVENT_MASK) {
                     full_visible &= ~FULL_INVENT_MASK;
@@ -2371,6 +2423,17 @@ uchar invent_hotkey_func(ushort keycode, uint32_t context, intptr_t data) {
     return TRUE;
 }
 
+static int inventory_next_weapon(int active, int direction) {
+    int next = active + direction;
+    if (next < 0) {
+        for (next = NUM_WEAPON_SLOTS - 1;
+             next > 0 && player_struct.weapons[next].type == EMPTY_WEAPON_SLOT; --next)
+            ;
+    } else if (next >= NUM_WEAPON_SLOTS || player_struct.weapons[next].type == EMPTY_WEAPON_SLOT)
+        next = 0;
+    return next;
+}
+
 uchar cycle_weapons_func(ushort keycode, uint32_t context, intptr_t data) {
     if (global_fullmap->cyber) {
         int ac = player_struct.actives[ACTIVE_COMBAT_SOFT];
@@ -2387,15 +2450,8 @@ uchar cycle_weapons_func(ushort keycode, uint32_t context, intptr_t data) {
         player_struct.actives[ACTIVE_COMBAT_SOFT] = i;
         INVENT_CHANGED;
     } else {
-        int aw = player_struct.actives[ACTIVE_WEAPON];
+        int aw = inventory_next_weapon(player_struct.actives[ACTIVE_WEAPON], data);
 
-        aw += data;
-        if (aw >= NUM_WEAPON_SLOTS || player_struct.weapons[aw].type == EMPTY_WEAPON_SLOT)
-            aw = 0;
-        else if (aw < 0) {
-            for (aw = NUM_WEAPON_SLOTS - 1; player_struct.weapons[aw].type == EMPTY_WEAPON_SLOT && aw > 0; aw--)
-                ;
-        }
         inventory_select_weapon(NULL, aw);
     }
     return TRUE;
@@ -2404,7 +2460,14 @@ uchar cycle_weapons_func(ushort keycode, uint32_t context, intptr_t data) {
 #define PAGEUP_KEY KEY_PAD_PGUP | KB_FLAG_DOWN
 #define PAGEDN_KEY KEY_PAD_PGDN | KB_FLAG_DOWN
 
+uchar inventory_page_hotkey(ushort keycode, uint32_t context, intptr_t direction) {
+    if (full_game_3d && !(full_visible & FULL_INVENT_MASK)) return FALSE;
+    return inventory_turn_page(direction);
+}
+
 void init_invent_hotkeys(void) {
+    hotkey_add(KEY_PGUP | KB_FLAG_DOWN, DEMO_CONTEXT, inventory_page_hotkey, -1);
+    hotkey_add(KEY_PGDN | KB_FLAG_DOWN, DEMO_CONTEXT, inventory_page_hotkey, 1);
     /*  later
     //   hotkey_add(PAGEUP_KEY,DEMO_CONTEXT,invent_hotkey_func,0);
        hotkey_add(PAGEUP_KEY|KB_FLAG_2ND,DEMO_CONTEXT,invent_hotkey_func,0);
@@ -3393,6 +3456,10 @@ uchar gen_inv_page(int pgnum, int *i, inv_display **dp) {
     for (; *i < NUM_INV_DISPLAYS; (*i)++) {
         inv_display *idp = &inv_display_list[*i];
         if (idp->pgnum == pgnum) {
+            if (idp->draw == draw_weapons_list)
+                idp->relnum = weapon_subpage;
+            else if (idp->draw == draw_general_list)
+                idp->relnum = 2 * general_subpage + (idp->left >= CENTER_X - RIGHT_MARGIN);
             *dp = idp;
             return TRUE;
         }

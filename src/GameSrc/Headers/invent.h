@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Game Object Includes
 
-#define MAX_GENERAL_INVENTORY 12
+#define MAX_GENERAL_INVENTORY NUM_GENERAL_SLOTS
 
 // Prototypes
 
@@ -51,6 +51,9 @@ LGRegion *create_invent_region(LGRegion *parent, LGRegion **pbuttons, LGRegion *
 // Draw the inventory area.  Keeps information on most recent draw so only does
 // incremental updates.
 errtype inventory_draw(void);
+int inventory_subpage(int category);
+int inventory_subpage_count(int category);
+uchar inventory_turn_page(int direction);
 
 // Force the inventory panel to draw, no matter what
 errtype inventory_full_redraw(void);

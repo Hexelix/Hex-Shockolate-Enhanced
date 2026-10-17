@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cybstrng.h"
 #include "drugs.h"
 #include "fatigue.h"
+#include "faketime.h"
 #include "gameloop.h"
 #include "gamestrn.h"
 #include "init.h"
@@ -56,6 +57,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // ---------
 // Constants
 // ---------
+
+#define BERSERK_DURATION_TICKS (60u * CIT_CYCLE)
 
 #define DRUG_UPDATE_FREQ 1024 // # of ticks in between updates      ~3.5 secs
 #define DRUG_DECAY 8          // Std chance a drug wears off each
@@ -132,6 +135,20 @@ char *get_drug_name(int n, char *buf) {
 //
 // Use an instance of drug n, install it as appropriate.
 
+// Berserk uses elapsed game time, so pausing and save/load preserve its duration.
+void drug_berserk_use(void) {
+    player_struct.berserk_started_at = player_struct.game_time;
+}
+
+bool drug_berserk_expired(void) {
+    return STATUS(DRUG_LSD) > 0 &&
+        (uint32_t)(player_struct.game_time - player_struct.berserk_started_at) >= BERSERK_DURATION_TICKS;
+}
+
+bool drug_should_decay(int drug, int decay) {
+    return drug != DRUG_LSD && (rand() % DRUG_DECAY_MAX) < decay;
+}
+
 void drug_use(int n) {
     char buf[80];
     if (player_struct.drugs[n] == 0)
@@ -164,6 +181,8 @@ void drug_use(int n) {
 void drug_wear_off(int n) {
     player_struct.drug_intensity[n] = 0;
     player_struct.drug_status[n] = 0; // in case not called from update loop
+    if (n == DRUG_LSD)
+        player_struct.berserk_started_at = 0;
 
     if (Drugs[n].wearoff)
         Drugs[n].wearoff();
@@ -180,6 +199,11 @@ void drug_wear_off(int n) {
 
 void drugs_update() {
     int i, decay;
+
+    // Check every frame, independently of the shared random-decay cadence.
+    // Unsigned elapsed time also handles a game clock wrapping around.
+    if (drug_berserk_expired())
+        drug_wear_off(DRUG_LSD);
 
     // Only update drugs once every FREQ game ticks
     if ((player_struct.game_time - player_struct.last_drug_update) >= DRUG_UPDATE_FREQ) {
@@ -201,7 +225,7 @@ void drugs_update() {
                     Drugs[i].effect();
 
                 // Figure out if the drug wore off a little
-                if ((rand() % DRUG_DECAY_MAX) < decay) {
+                if (drug_should_decay(i, decay)) {
 
                     // it did
                     player_struct.drug_status[i]--;
@@ -458,9 +482,9 @@ void drug_medic_wearoff();
 #define MEDIC_DECAY_RATE 8
 #define MEDIC_HEAL_STEPS 10
 // ushort medic_heal_rates[] = { 10,50,55,105,210} ;
-// Double every stage, including the cleanup decrements, preserving the curve.
-ushort medic_heal_rates[] = {10, 10, 50, 50, 50, 60, 100, 110, 200, 220};
-#define MEDIC_HEAL_RATE 860
+// 1.5x baseline, rounded at each cumulative stage so cleanup sums to 645.
+ushort medic_heal_rates[] = {8, 7, 38, 37, 38, 45, 75, 82, 150, 165};
+#define MEDIC_HEAL_RATE 645
 
 // ---------------------------------------------------------------------------
 // drug_medic_use()
@@ -603,6 +627,8 @@ void drug_detox_use() {
 void wear_off_drug(int i) {
     int laststat = STATUS(i);
     STATUS(i) = 0;
+    if (i == DRUG_LSD)
+        player_struct.berserk_started_at = 0;
     if (laststat > 0 && Drugs[i].wearoff != NULL)
         Drugs[i].wearoff();
     else if (laststat < 0 && Drugs[i].after_effect != NULL)
@@ -666,9 +692,9 @@ DRUG Drugs[NUM_DRUGZ] = {
     },
     // Berserk
     {
-        DRUG_DEFAULT_TIME / 2, // duration
-        DRUG_LONGER_DOSE,      // flags
-        NULL,                  // use
+        DRUG_DEFAULT_TIME / 2, // active status; elapsed game time controls expiry
+        DRUG_NONE,             // another dose refreshes rather than stacks
+        &drug_berserk_use,      // use
         &drug_lsd_effect,      // effect
         &drug_lsd_wearoff,     // wearoff
         &drug_lsd_startup,     // startup

@@ -5,8 +5,8 @@
 // reserved for MFD puzzle status; this was later expanded to 64. Unfortunately,
 // save game compatibility between versions wasn't really a thing and the
 // structure version number wasn't changed, so we have to go by length.
-// We can load both DOS and enhanced edition save files, but the DOS edition
-// won't be able to load ours; the enhanced edition should.
+// Hex uses an expanded inventory and a saved berserk timer. Older saves are
+// intentionally incompatible; start a new game after upgrading.
 
 // C preprocessor hackery to name the struct according to the size of the MFD
 // access puzzles field. It will ultimately create structures named
@@ -18,7 +18,8 @@
 // Describe the layout of the player in a resfile.
 const ResLayout STRUCTNAME(PlayerLayout_M, PL_MFD_PUZZLE_SIZE) =
 {
-  711 + PL_MFD_PUZZLE_SIZE + 654, // size on disc
+  711 + PL_MFD_PUZZLE_SIZE + 654 + 2 * (NUM_GENERAL_SLOTS - 14)
+      + 5 * (NUM_WEAPON_SLOTS - 7) + 4, // size on disc
   sizeof(Player), // size in memory
   0,              // flags
   {
@@ -29,6 +30,7 @@ const ResLayout STRUCTNAME(PlayerLayout_M, PL_MFD_PUZZLE_SIZE) =
     { RFFT_UINT32,  offsetof(Player, game_time)          },  //uint32_t
     { RFFT_UINT32,  offsetof(Player, last_second_update) },  //uint32_t
     { RFFT_UINT32,  offsetof(Player, last_drug_update)   },  //uint32_t
+    { RFFT_UINT32,  offsetof(Player, berserk_started_at) },  //uint32_t
     { RFFT_UINT32,  offsetof(Player, last_ware_update)   },  //uint32_t
     { RFFT_UINT32,  offsetof(Player, last_anim_check)    },  //uint32_t
     { RFFT_UINT32,  offsetof(Player, queue_time)         },  //int
@@ -52,9 +54,10 @@ const ResLayout STRUCTNAME(PlayerLayout_M, PL_MFD_PUZZLE_SIZE) =
     { RFFT_UINT8,  offsetof(Player, realspace_loc.b) },  //ubyte
     { RFFT_UINT32, offsetof(Player, version_num)     },  //int
 
-    //short inventory[14];
+    //short inventory[28];
     #define L(x)  { RFFT_UINT16, offsetof(Player, inventory[x]) }
     L(0),L(1),L(2),L(3),L(4),L(5),L(6),L(7),L(8),L(9),L(10),L(11),L(12),L(13),
+    L(14),L(15),L(16),L(17),L(18),L(19),L(20),L(21),L(22),L(23),L(24),L(25),L(26),L(27),
     #undef L
 
     { RFFT_UINT8,   offsetof(Player, posture)          },  //ubyte
@@ -116,13 +119,13 @@ const ResLayout STRUCTNAME(PlayerLayout_M, PL_MFD_PUZZLE_SIZE) =
     { RFFT_BIN(294),  offsetof(Player, email)              },  //uchar [294]
     { RFFT_BIN(14),   offsetof(Player, logs)               },  //ubyte [14]
 
-    //weapon_slot weapons[7];
+    //weapon_slot weapons[9];
     #define L(x)  { RFFT_UINT8, offsetof(Player, weapons[x].type)      }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].subtype)   }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].ammo)      }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].ammo_type) }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].make_info) }
-    L(0),L(1),L(2),L(3),L(4),L(5),L(6),
+    L(0),L(1),L(2),L(3),L(4),L(5),L(6),L(7),L(8),
     #undef L
 
     { RFFT_BIN(15), offsetof(Player, hardwarez_status)        },  //ubyte [15]

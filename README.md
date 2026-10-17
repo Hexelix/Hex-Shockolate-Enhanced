@@ -4,12 +4,15 @@ Based on [MeeperTheGreat99/systemshock-enhanced](https://github.com/MeeperTheGre
 
 This fork adds:
 
+- 28 general-item slots and nine weapon slots, using two pages in each category.
+- Page Up/Down, the inventory mouse wheel, and repeated category-button clicks to change pages. Selecting an item or weapon reveals its page.
 - Horizontal mouselook that preserves lean and stance angular velocities.
-- Double medi-patch regeneration at every stage, retaining the original taper and random expiration.
+- 1.5× original medi-patch regeneration, retaining the taper and random expiration.
+- Berserk patches lasting 60 seconds of game time. A second dose refreshes the timer; save/load preserves remaining time, and Detox still works.
 - Double plasma-gun base damage and railgun explosion damage, including its distance falloff and self-damage.
 - Linux build scripts, a game-data importer, and focused regression tests.
 
-Inventory capacity is unchanged. The Linux build and focused regression tests passed; an in-game Steam Deck playtest remains outstanding. Purchased original game assets are required and are not included.
+**Start a new game:** the expanded inventory and saved berserk timer use a new player-save layout. Earlier saves are incompatible. The Linux build and regression tests passed; in-game and Steam Deck playtests remain outstanding. Purchased original game assets are required and are not included.
 
 For a standard Linux build, install CMake, a C/C++ compiler, pkg-config, SDL2/SDL2_mixer development packages and OpenGL development headers, then run `sh linux/build.sh`. See [Linux setup and validation notes](linux/README-build.txt) for package instructions and limitations. The static-mixer build script expects a sibling SDL_mixer source checkout as described there.
 
