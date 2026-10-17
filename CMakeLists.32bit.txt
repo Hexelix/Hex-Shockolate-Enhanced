@@ -261,6 +261,7 @@ set(GAME_SRC
 	src/GameSrc/tfdirect.c
 	src/GameSrc/tfutil.c
 	src/GameSrc/tools.c
+	src/GameSrc/ecology.c
 	src/GameSrc/trigger.c
 	src/GameSrc/view360.c
 	src/GameSrc/viewhelp.c

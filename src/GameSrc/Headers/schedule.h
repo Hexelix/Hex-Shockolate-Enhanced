@@ -80,6 +80,7 @@ typedef void (*SchedHandler)(Schedule *s, SchedEvent *ev);
 #define LIGHT_SCHED_EVENT     8
 #define BARK_SCHED_EVENT      9
 #define EMAIL_SCHED_EVENT    10
+#define ECOLOGY_SCHED_EVENT  11
 
 typedef struct _expose_data {
     byte damage;

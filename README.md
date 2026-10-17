@@ -4,6 +4,8 @@ Based on [MeeperTheGreat99/systemshock-enhanced](https://github.com/MeeperTheGre
 
 This fork adds:
 
+- Ecology reinforcements delayed by a random 30–120 seconds per trigger. Pending timers are saved, repeated checks do not stack them, and population is rechecked before spawning. Scripted non-ecology spawns keep their original behavior.
+
 - 28 general-item slots and nine weapon slots, using two pages in each category.
 - Page Up/Down, the inventory mouse wheel, and repeated category-button clicks to change pages. Selecting an item or weapon reveals its page.
 - Horizontal mouselook that preserves lean and stance angular velocities.
@@ -12,7 +14,7 @@ This fork adds:
 - Double plasma-gun base damage and railgun explosion damage, including its distance falloff and self-damage.
 - Linux build scripts, a game-data importer, and focused regression tests.
 
-**Start a new game:** the expanded inventory and saved berserk timer use a new player-save layout. Earlier saves are incompatible. The Linux build and regression tests passed; in-game and Steam Deck playtests remain outstanding. Purchased original game assets are required and are not included.
+**Save compatibility:** v0.2 expanded-inventory saves work with this ecology update. Saves from the original port and earlier seven-weapon builds require a new game. The Linux build and regression tests passed; in-game and Steam Deck playtests remain outstanding. Purchased original game assets are required and are not included.
 
 For a standard Linux build, install CMake, a C/C++ compiler, pkg-config, SDL2/SDL2_mixer development packages and OpenGL development headers, then run `sh linux/build.sh`. See [Linux setup and validation notes](linux/README-build.txt) for package instructions and limitations. The static-mixer build script expects a sibling SDL_mixer source checkout as described there.
 

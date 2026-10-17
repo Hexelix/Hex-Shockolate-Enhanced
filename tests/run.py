@@ -17,13 +17,13 @@ def settings(suffix):
         if a in ('-c','-DNDEBUG') or a==item['file']: continue
         clean.append(a)
     return clean+['-UNDEBUG','-ffunction-sections','-fdata-sections'],item
-for test,source in [('yaw','EDMS/Source/interfac.cc'),('medic','GameSrc/drugs.c'),('berserk','GameSrc/drugs.c'),('player_save','RES/Source/resacc.c'),('inventory','GameSrc/invent.c')]:
+for test,source in [('yaw','EDMS/Source/interfac.cc'),('medic','GameSrc/drugs.c'),('berserk','GameSrc/drugs.c'),('player_save','RES/Source/resacc.c'),('inventory','GameSrc/invent.c'),('ecology','GameSrc/ecology.c')]:
     args,item=settings(source)
     obj=out/(test+'.o')
-    if test != 'inventory':
+    if test not in ('inventory','ecology'):
         subprocess.run(args+['-c',item['file'],'-o',str(obj)],cwd=item['directory'],check=True)
     if test=='player_save': args,_=settings('GameSrc/drugs.c')
     harness=root/'tests'/(test+('.cpp' if test=='yaw' else '.c'))
     exe=out/test
-    subprocess.run(args+[str(harness)]+([] if test=='inventory' else [str(obj)])+['-Wl,--gc-sections','-o',str(exe)],cwd=item['directory'],check=True)
+    subprocess.run(args+[str(harness)]+([] if test in ('inventory','ecology') else [str(obj)])+['-Wl,--gc-sections','-o',str(exe)],cwd=item['directory'],check=True)
     subprocess.run([str(exe)],check=True)

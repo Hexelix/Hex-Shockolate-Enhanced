@@ -58,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "objver.h"
 #include "otrip.h"
 #include "objgame.h"
+#include "ecology.h"
 #include "objcrit.h"
 #include "physics.h"
 #include "physunit.h"
@@ -114,7 +115,6 @@ int physics_handle_max = -1;
 // Internal Prototypes
 errtype ObjClassInit(ObjID id, ObjSpecID specid, int subclass);
 errtype obj_set_secondary_properties();
-errtype do_ecology_triggers();
 grs_bitmap *get_text_bitmap_from_string(int d1, char dest_type, char *s, uchar scroll, int scroll_index);
 grs_bitmap *obj_get_model_data(ObjID id, fix *x, fix *y, fix *z, grs_bitmap *bm2, Ref *ref1, Ref *ref2);
 void place_obj_at_objloc(ObjID id, ObjLoc *newloc, ushort xsize, ushort ysize);

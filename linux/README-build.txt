@@ -1,10 +1,22 @@
-HEX-SHOCKOLATE-ENHANCED — EXPANDED INVENTORY LINUX BUILD (v0.2)
+HEX-SHOCKOLATE-ENHANCED — DELAYED ECOLOGY LINUX BUILD (v0.3)
 
 Repository: https://github.com/Hexelix/Hex-Shockolate-Enhanced
 Based on MeeperTheGreat99/systemshock-enhanced, derived from Shockolate.
 GPL-3.0-or-later. Purchased original game data is required and not included.
 
 CHANGES IN THIS BUILD
+* Ecology reinforcements wait a random 30-120 seconds of game time after a
+  population deficit is detected (plus the scheduler's fraction-of-a-second
+  rounding). Each ecology trigger has at most one pending event. More kills
+  do not stack timers or continually restart an existing timer.
+* When the event fires, population is counted again; a recovered population
+  or removed/replaced trigger cancels that event. If placement fails or a
+  deficit remains, another fresh 30-120 second timer is scheduled. Finite-use
+  triggers still stop when exhausted. Enemy types, spawn regions, quotas and
+  batch sizes retain their existing rules. Scripted ambushes and other
+  non-ecology spawns keep their original timing.
+* Pending ecology events are stored in the existing level event queue and
+  survive saves. They use game time, so pausing does not spend the delay.
 * General inventory: 28 slots (formerly 14), shown as two pages of 14 items.
 * Weapons: nine slots (formerly seven), shown as seven weapons then two.
 * Use Page Up / Page Down, scroll the wheel over the inventory, or click the
@@ -23,22 +35,25 @@ CHANGES IN THIS BUILD
 * Retains the mouselook leaning/stance fix and 2x railgun/plasma base damage.
   Railgun splash damage to you is increased too; radius/ammo cost unchanged.
 
-START A NEW GAME
-The expanded slots and berserk timer use a new player-save layout. Saves from
-Nightdive, upstream Shockolate and the earlier seven-weapon build are not
-compatible. Keep your old installation/saves in a separate folder. This
-build rejects older player resource sizes rather than loading them as new.
+SAVE COMPATIBILITY
+This ecology update accepts v0.2 expanded-inventory saves; no new game is
+required when upgrading from v0.2. Pending timers use the existing level
+scheduler, and the player-save layout has not changed in v0.3.
+
+Saves from Nightdive, upstream Shockolate and the earlier seven-weapon build
+remain incompatible with the expanded inventory. Start a new game if coming
+from those versions. Keep old saves in a separate folder.
 
 STEAM DECK SETUP — DESKTOP MODE
 1. Extract this archive into its own folder, such as
-   /home/deck/Games/Hex-Shockolate-Enhanced-v0.2.
+   /home/deck/Games/Hex-Shockolate-Enhanced-v0.3.
 2. Browse the Steam Enhanced Edition installation to locate sshock.kpf.
    Open a terminal in the extracted folder and run:
      python3 import-data.py "/full/path/to/sshock.kpf"
    Alternatively provide the original CD/Classic SSHOCK directory containing
    DATA and SOUND. The importer copies files into res/data and res/sound;
    it does not modify the originals. You can also copy the res folder from
-   your previous source-port setup. Do not copy its saves/preferences.
+   your previous source-port setup. v0.2 saves can also be used with this build.
 3. Run:
      chmod +x systemshock launch.sh
      ./launch.sh -fullscreen
@@ -47,7 +62,7 @@ STEAM DECK SETUP — DESKTOP MODE
    Use Steam Input keyboard/mouse bindings: WASD movement, F mouselook,
    Q/E lean, T/G/B stand/crouch/prone, C quick pickup, Tab/Shift+Tab weapon
    cycling. Bind Page Up/Down to spare buttons for the new inventory pages.
-5. Begin a NEW GAME, then test the expanded inventory before a long session.
+5. Load a v0.2 save or begin a new game, and test before a long session.
 
 The launcher writes run.log in this folder. If required game data is missing,
 it stops with a message. The original Steam installation remains separate.
@@ -82,6 +97,10 @@ Release build completed. Focused tests compile production code and cover:
   remaining berserk time, and the declared player-save resource size.
 * Inventory page wrapping, row mapping through slot 28, selecting the final
   slots, blank rows on weapon page two, and forward/backward weapon cycling.
+* Ecology delay bounds, timer deduplication and saved event bytes, restored
+  populations, removed/replaced traps, delayed placement retries, finite-use
+  triggers, and scheduler timestamp wraparound. The test isolates production
+  ecology code with a mock spawn callback and queue insertion.
 Tests are rerunnable with:
   python3 source/systemshock-enhanced/tests/run.py /absolute/path/to/build
 
@@ -90,7 +109,10 @@ not replace one. First test acquiring items/weapons past the original limits,
 switching pages, using/dropping the last slots, changing level, and saving/
 loading them. Then time a berserk dose, save halfway through it and reload;
 it should expire after the remaining game time. Test healing below the cap.
-The larger player record intentionally ends old-save compatibility.
+For ecology, kill a respawning enemy and wait: its ecology trigger should
+wait 30-120 seconds before trying to replenish. Save partway through a wait
+and reload to check the pending timer. The larger player record from v0.2
+intentionally ends compatibility with the earlier seven-weapon saves.
 
 LICENSES
 The port is GPL-3.0-or-later: see COPYING.txt and source-file notices.

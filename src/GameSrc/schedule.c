@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "otrip.h"
 #include "faketime.h"
 #include "trigger.h"
+#include "ecology.h"
 #include "objwpn.h"
 #include "combat.h"
 #include "objgame.h"
@@ -398,6 +399,7 @@ static SchedHandler sched_handlers[] = {
     null_event_handler,  grenade_event_handler,  explosion_event_handler, door_event_handler,
     trap_event_handler,  exposure_event_handler, height_event_handler,    height_event_handler,
     light_event_handler, bark_event_handler,     email_event_handler,
+    ecology_event_handler,
 };
 
 #define NUM_EVENT_TYPES (sizeof(sched_handlers) / sizeof(SchedHandler))

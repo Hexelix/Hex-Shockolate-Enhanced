@@ -163,7 +163,6 @@ errtype trap_expose_func(int dmg, int dtype, int tsecs, int dummy);
 errtype trap_bark_func(int speaker, int strnum, int color, int hud_bark);
 
 errtype grind_trap(char type, int p1, int p2, int p3, int p4, ubyte *destroy_count_ptr, ObjID id);
-errtype do_ecology_triggers();
 
 #define SHODOMETER_QVAR_BASE 0x10
 
@@ -2219,45 +2218,6 @@ errtype do_shodan_triggers() {
             if (comparator_check(objTraps[osid].comparator, objTraps[osid].id, &special)) {
                 grind_trap(objTraps[osid].trap_type, objTraps[osid].p1, objTraps[osid].p2, objTraps[osid].p3,
                            objTraps[osid].p4, &objTraps[osid].destroy_count, objTraps[osid].id);
-            }
-        }
-        osid = objTraps[osid].next;
-    }
-    return (OK);
-}
-
-errtype do_ecology_triggers() {
-    ObjSpecID osid, osid2;
-    ObjClass cl;
-    char counter = 0, quan;
-    int trip;
-    ObjSpec ospec;
-    ObjID id;
-    extern uchar trigger_check;
-
-    osid = objTraps[0].id;
-    while (osid != OBJ_SPEC_NULL) {
-        id = objTraps[osid].id;
-        if (ID2TRIP(id) == ECOLOGY_TRIG_TRIPLE) {
-            quan = objTraps[osid].comparator >> 24;
-            cl = (ObjClass)((objTraps[osid].comparator & 0xFF0000) >> 16);
-            trip = objTraps[osid].comparator & 0xFFFFFF;
-            osid2 = (*(ObjSpec *)objSpecHeaders[cl].data).bits.id;
-            counter = 0;
-            while (osid2 != OBJ_SPEC_NULL) {
-                ospec = *(ObjSpec *)(objSpecHeaders[cl].data + (osid2 * objSpecHeaders[cl].struct_size));
-                if (ID2TRIP(ospec.bits.id) == trip)
-                    counter++;
-                if (counter > quan)
-                    osid2 = OBJ_SPEC_NULL;
-                else
-                    osid2 = ospec.next;
-            }
-            if (counter < quan) {
-                trigger_check = FALSE;
-                grind_trap(objTraps[osid].trap_type, objTraps[osid].p1, objTraps[osid].p2, objTraps[osid].p3,
-                           objTraps[osid].p4, &objTraps[osid].destroy_count, objTraps[osid].id);
-                trigger_check = TRUE;
             }
         }
         osid = objTraps[osid].next;
