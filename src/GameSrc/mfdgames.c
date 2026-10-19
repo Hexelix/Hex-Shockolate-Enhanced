@@ -1111,7 +1111,7 @@ void games_expose_bots(MFD *m, uchar control) {
         for (uint8_t i = 0; i < BOTS_NUM_COLUMNS; ++i) {
             if (bs->rows[j] & (1u << i)) {
 #ifdef SVGA_SUPPORT
-                draw_res_bm_core(invader[j] + INVADER_TYPES * convert_use_mode, HPOS + BOT_WIDTH * i,
+                draw_res_bm_core(invader[j] + INVADER_TYPES * lg_min(convert_use_mode, 4), HPOS + BOT_WIDTH * i,
                                  BOT_HEIGHT * j + BOT_TOP - (j == 1), FALSE);
 #else
                 draw_res_bm(invader[j], HPOS + BOT_WIDTH * i, BOT_HEIGHT * j + BOT_TOP - (j == 1));

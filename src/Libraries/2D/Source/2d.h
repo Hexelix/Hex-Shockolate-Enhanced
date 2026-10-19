@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "fix.h" 
 #ifndef __2D_H 
 #define __2D_H
+#include "video_config.h"
 
 #include "GR/grs.h"
 #include "plytyp.h"
@@ -399,7 +400,10 @@ enum {
    GRM_640x480x24,
    GRM_800x600x24,
    GRM_1024x768x24,
-   GRM_1280x1024x24
+   GRM_1280x1024x24,
+#define SHOCK_MODE_ENUM(w,h,id) id,
+   SHOCK_WIDE_MODES(SHOCK_MODE_ENUM)
+#undef SHOCK_MODE_ENUM
 };
 enum {
    GRM_320X200X8,
@@ -417,7 +421,7 @@ enum {
    GRM_800X600X24,
    GRM_1024X768X24,
    GRM_1280X1024X24,
-   GRD_MODES
+   GRD_MODES = 15 + 8
 };
 extern grs_mode_info grd_mode_info[];
 extern int gr_set_mode (int mode, int clear);

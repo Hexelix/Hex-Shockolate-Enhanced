@@ -108,6 +108,12 @@ enum TEMP_STR_ {
 	REF_STR_FOV,
 	REF_STR_FOV_Value,
 	REF_STR_Fullscreen,
+    REF_STR_Resolution0,
+    REF_STR_Resolution1,
+    REF_STR_Resolution2,
+    REF_STR_Resolution3,
+    REF_STR_MoreResolutions,
+    REF_STR_Resolutions,
 
     REF_STR_TextFilt = 0x10000010,
     REF_STR_TFUnfil, // unfiltered

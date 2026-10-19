@@ -42,8 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "fovchange.h"
 #include "fullscrntogg.h"
 
-short max_fov = 135;
-short min_fov = 70;
+short max_fov = SHOCK_FOV_MAX;
+short min_fov = SHOCK_FOV_MIN;
 
 extern uchar mfd_button_callback_kb(ushort keycode, uint32_t context, intptr_t data);
 extern uchar hw_hotkey_callback(ushort keycode, uint32_t context, intptr_t data);
@@ -124,7 +124,7 @@ void SetDefaultPrefs(void) {
     gShockPrefs.soMusicVolume = 75;
     gShockPrefs.soSfxVolume = 100;
     gShockPrefs.soAudioLogVolume = 100;
-    gShockPrefs.doVideoMode = 3;
+    gShockPrefs.doVideoMode = SHOCK_DECK_MODE;
     gShockPrefs.doResolution = 0; // High-res.
     gShockPrefs.doDetail = 3;     // Max detail.
     gShockPrefs.doUseOpenGL = false;
@@ -218,7 +218,7 @@ int16_t LoadPrefs(void) {
                 gShockPrefs.soAudioLogVolume = vol;
         } else if (strcasecmp(key, PREF_VIDEOMODE) == 0) {
             int mode = atoi(value);
-            if (mode >= 0 && mode <= 4)
+            if (shock_valid_video_mode(mode))
                 gShockPrefs.doVideoMode = mode;
         } else if (strcasecmp(key, PREF_HALFRES) == 0) {
             gShockPrefs.doResolution = is_true(value);
@@ -268,7 +268,7 @@ int16_t LoadPrefs(void) {
 				fov = max_fov;
 			gShockPrefs.doFov = (short)fov;
 			saved_fov = gShockPrefs.doFov;
-			global_fov = gShockPrefs.doUseOpenGL ? 80 : gShockPrefs.doFov;
+			global_fov = gShockPrefs.doFov;
 		} else if (strcasecmp(key, PREF_FULLSCREEN) == 0) {
 			gShockPrefs.doFullscreen = is_true(value);
 		}

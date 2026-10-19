@@ -53,7 +53,7 @@ extern short ss_curr_mode_height(void);
 extern void ss_set_hack_mode(short new_m, short *tval);
 
 #define MAX_CONVERT_TYPES 4
-#define MAX_USE_MODES 8
+#define MAX_USE_MODES 16
 
 extern fix convert_x[MAX_CONVERT_TYPES][MAX_USE_MODES];
 extern fix convert_y[MAX_CONVERT_TYPES][MAX_USE_MODES];

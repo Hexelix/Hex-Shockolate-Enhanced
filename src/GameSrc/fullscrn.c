@@ -58,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "game_screen.h" // was screen.h?
 #include "Shock.h"
+#include "OpenGL.h"
 
 #include "fovchange.h"
 
@@ -84,7 +85,9 @@ extern uchar inp6d_stereo;
 #ifdef SVGA_SUPPORT
 grs_screen *svga_screen = NULL;
 frc *svga_render_context = NULL;
-short svga_mode_data[] = {GRM_320x200x8, GRM_320x400x8, GRM_640x400x8, GRM_640x480x8, GRM_1024x768x8, GRM_320x200x8};
+#define SHOCK_MODE_ID(w,h,id) id,
+short svga_mode_data[] = { SHOCK_VIDEO_MODES(SHOCK_MODE_ID) };
+#undef SHOCK_MODE_ID
 char mickey_stupid[][2] = {{16, 8}, {16, 4}, {3, 1}, {2, 1}, {3, 1}, {16, 8}};
 short mode_id = 3; // KLC - start off in 640x480 in Mac version      old -  short mode_id=0;
 #endif
@@ -213,6 +216,8 @@ void change_svga_screen_mode() {
     uchar mode_change = FALSE;
     short temp;
 
+    if (!shock_valid_video_mode(mode_id))
+        mode_id = SHOCK_DECK_MODE;
     if (convert_use_mode != mode_id)
         mode_change = TRUE;
     if (mode_change) {
@@ -233,7 +238,7 @@ void change_svga_screen_mode() {
             cur_m = svga_mode_data[mode_id];
             retval = gr_set_mode(cur_m, TRUE);
             if (retval == -1) {
-                mode_id = (mode_id + 1) % 5;
+                mode_id = (mode_id + 1) % SHOCK_VIDEO_MODE_COUNT;
             }
         }
         convert_use_mode = mode_id;
@@ -289,7 +294,7 @@ void change_svga_screen_mode() {
         if (mode_id == 0)
             game_redrop_rad(0);
         else
-            game_redrop_rad(2 + mode_id);
+            game_redrop_rad(2 + lg_min(mode_id, 4));
 
         ss_mouse_convert(&mx, &my, FALSE);
         /*KLC  leave out until stereo view is needed
@@ -334,6 +339,13 @@ void change_svga_screen_mode() {
     // KLC	gamma_dealfunc(QUESTVAR_GET(GAMMACOR_QVAR));
     gamma_dealfunc(gShockPrefs.doGamma);
     redraw_paused = TRUE;
+    // Desktop fullscreen may keep the same physical window size while its
+    // logical render resolution changes, so no SDL resize event is guaranteed.
+    if (mode_change && can_use_opengl()) {
+        int width, height;
+        SDL_GetWindowSize(window, &width, &height);
+        opengl_resize(width, height);
+    }
 }
 
 void global_update_fov()

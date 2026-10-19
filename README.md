@@ -4,6 +4,8 @@ Based on [MeeperTheGreat99/systemshock-enhanced](https://github.com/MeeperTheGre
 
 This fork adds:
 
+- Widescreen rendering through 3840x2160, including Steam Deck native 1280x800; resolution paging and a 70–135-degree horizontal FOV slider on the Video page, for Software and OpenGL.
+
 - Ecology reinforcements delayed by a random 30–120 seconds per trigger. Pending timers are saved, repeated checks do not stack them, and population is rechecked before spawning. Scripted non-ecology spawns keep their original behavior.
 
 - 28 general-item slots and ten weapon slots, using two pages in each category.
@@ -13,7 +15,7 @@ This fork adds:
 - Double plasma-gun base damage and railgun explosion damage, including its distance falloff and self-damage.
 - Linux build scripts, a game-data importer, and focused regression tests.
 
-**Save compatibility:** the ten-weapon build (v0.3.3) requires a new game. Earlier nine-weapon saves, including v0.3.2, and original-port saves are rejected before changing the game world. Purchased original game assets are required and are not included.
+**Save compatibility:** v0.4.0 accepts v0.3.3 ten-weapon saves. Earlier nine-weapon saves, including v0.3.2, and original-port saves are rejected before changing the game world. Purchased original game assets are required and are not included.
 
 For a standard Linux build, install CMake, a C/C++ compiler, pkg-config, SDL2/SDL2_mixer development packages and OpenGL development headers, then run `sh linux/build.sh`. See [Linux setup and validation notes](linux/README-build.txt) for package instructions and limitations. The static-mixer build script expects a sibling SDL_mixer source checkout as described there.
 

@@ -150,10 +150,8 @@ errtype screen_init(void) {
 
 #ifdef SVGA_SUPPORT
     gr2ss_register_init(0, 320, 200);
-    gr2ss_register_mode(0, 320, 400);
-    gr2ss_register_mode(0, 640, 400);
-    gr2ss_register_mode(0, 640, 480);
-    gr2ss_register_mode(0, 1024, 768);
+    for (int mode = 1; mode < SHOCK_VIDEO_MODE_COUNT; ++mode)
+        gr2ss_register_mode(0, shock_video_sizes[mode][0], shock_video_sizes[mode][1]);
 #ifdef STEREO_SUPPORT
     if (i6d_device == I6D_VFX1) {
         Warning(("size = %d, %d!\n", i6d_ss->scr_w, i6d_ss->scr_h));

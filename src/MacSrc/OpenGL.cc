@@ -75,7 +75,6 @@ struct FrameBuffer {
 static Shader textureShaderProgram;
 static Shader colorShaderProgram;
 static Shader starShaderProgram;
-static Shader hdrShaderProgram;
 
 static FrameBuffer backupBuffer;
 
@@ -106,6 +105,8 @@ static GLuint bound_texture = -1;
 // between GL projection and software projection (sprite screen coordinates)
 static const float ViewMatrix[] = {1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -0.01, 1.0};
 
+// Vertices already contain the view's FOV/aspect scaling (scale_view_matrix).
+// Applying another FOV here would misalign world geometry and software sprites.
 // Projection matrix; experimentally tweaked for near-perfect alignment:
 // FOV 89.5 deg, aspect ratio 1:1, near plane 0, far plane 100
 static const float ProjectionMatrix[] = {1.00876, 0.0, 0.0,  0.0,  0.0, 1.00876, 0.0, 0.0,
@@ -317,7 +318,6 @@ int init_opengl() {
     CreateShader("main.vert", "texture.frag", &textureShaderProgram);
     CreateShader("main.vert", "color.frag", &colorShaderProgram);
     CreateShader("main.vert", "star.frag", &starShaderProgram);
-	CreateShader("main.vert", "hdr.frag", &hdrShaderProgram);
 
     glGenTextures(1, &dynTexture);
 
@@ -339,6 +339,8 @@ int init_opengl() {
 }
 
 void opengl_resize(int width, int height) {
+    if (width <= 0 || height <= 0)
+        return;
     SDL_GL_MakeCurrent(window, context);
 
     int logical_width, logical_height;
@@ -363,7 +365,17 @@ void opengl_resize(int width, int height) {
     phys_offset_x = border_x / 2;
     phys_offset_y = border_y / 2;
 
-    backupBuffer = CreateFrameBuffer(logical_width, logical_height);
+    // Resolution/FOV changes can rebuild the viewport repeatedly. Release the
+    // previous attachments before allocating another (especially at 4K).
+    if (backupBuffer.width != logical_width || backupBuffer.height != logical_height) {
+        if (backupBuffer.frameBuffer) {
+            glDeleteFramebuffers(1, &backupBuffer.frameBuffer);
+            glDeleteRenderbuffers(1, &backupBuffer.stencilBuffer);
+            glDeleteTextures(1, &backupBuffer.texture);
+            bound_texture = -1;
+        }
+        backupBuffer = CreateFrameBuffer(logical_width, logical_height);
+    }
 
     INFO("OpenGL Resize %i %i %i %i", width, height, phys_width, phys_height);
 
@@ -506,7 +518,7 @@ void toggle_opengl() {
         case 0: {
             message_info("Switching to OpenGL bilinear rendering");
             gShockPrefs.doTextureFilter = 1;
-			global_fov = 80;
+			global_fov = gShockPrefs.doFov;
 			global_update_fov();
         } break;
         case 1: {
@@ -521,7 +533,7 @@ void toggle_opengl() {
         message_info("Switching to OpenGL unfiltered");
         gShockPrefs.doUseOpenGL = true;
         gShockPrefs.doTextureFilter = 0;
-		global_fov = 80;
+		global_fov = gShockPrefs.doFov;
 		global_update_fov();
     }
     SavePrefs();

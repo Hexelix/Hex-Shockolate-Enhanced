@@ -1,10 +1,13 @@
-HEX-SHOCKOLATE-ENHANCED — TEN-WEAPON LINUX BUILD (v0.3.3)
+HEX-SHOCKOLATE-ENHANCED — WIDESCREEN LINUX BUILD (v0.4.0)
 
 Repository: https://github.com/Hexelix/Hex-Shockolate-Enhanced
 Based on MeeperTheGreat99/systemshock-enhanced, derived from Shockolate.
 GPL-3.0-or-later. Purchased original game data is required and not included.
 
 CHANGES IN THIS BUILD
+* Widescreen modes through 3840x2160, including Deck native 1280x800.
+* Video-page horizontal FOV slider (70-135 degrees) for both renderers.
+* Removes an unused empty HDR shader that prevented OpenGL initialization.
 * Ecology reinforcements wait a random 30-120 seconds of game time after a
   population deficit is detected (plus the scheduler's fraction-of-a-second
   rounding). Each ecology trigger has at most one pending event. More kills
@@ -36,14 +39,13 @@ CHANGES IN THIS BUILD
   Railgun splash damage to you is increased too; radius/ammo cost unchanged.
 
 SAVE COMPATIBILITY
-This ten-weapon build requires a new game. The player save layout now stores
-one more weapon than v0.3.2. Saves from earlier builds, Nightdive and upstream
-Shockolate are rejected before the game world or working file is changed.
-Keep old saves in a separate folder.
+v0.4.0 accepts v0.3.3 ten-weapon saves. Nine-weapon and earlier saves remain
+incompatible and are rejected before changing game state. See the included
+README-recovery.txt for widescreen resolution/FOV controls and update setup.
 
 STEAM DECK SETUP — DESKTOP MODE
 1. Extract this archive into its own folder, such as
-   /home/deck/Games/Hex-Shockolate-Enhanced-v0.3.3.
+   /home/deck/Games/Hex-Shockolate-Enhanced-v0.4.0.
 2. Browse the Steam Enhanced Edition installation to locate sshock.kpf.
    Open a terminal in the extracted folder and run:
      python3 import-data.py "/full/path/to/sshock.kpf"
@@ -86,6 +88,10 @@ system can change the required runtime versions.
 
 VALIDATION / LIMITS
 Release build completed. Focused tests compile production code and cover:
+* Real SDL allocations/scaling for 13 modes, repeated changes through 4K,
+  horizontal projection math and every FOV slider round trip.
+* Optional offscreen OpenGL shader compilation, 4K framebuffer allocation
+  and pixel readback. Run tests/run.py build --opengl to include this check.
 * Lean/stance physics state surviving 1,000 mouse yaw updates.
 * All 1.5x medic taper stages and cleanup of overlapping doses.
 * Berserk's one-minute boundary, refreshed doses, timer wraparound, and its

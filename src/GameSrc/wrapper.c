@@ -353,6 +353,10 @@ uchar fv;
 static char MIDI_STR_BUFFER[MIDI_OUT_STR_SIZE];
 
 char fovtext[20];
+extern short mode_id;
+static int resolution_page = 0;
+static char resolution_labels[4][24];
+static char resolution_more[24];
 
 static char *_get_temp_string(int num) {
     switch (num) {
@@ -361,7 +365,14 @@ static char *_get_temp_string(int num) {
         case REF_STR_OpenGL:   return "OpenGL";
 		case REF_STR_Rendering:   return "Rendering";
 		case REF_STR_RenderPrefs:   return "Prefs.";
-		case REF_STR_FOV: return "Field of View";
+        case REF_STR_FOV:
+            snprintf(fovtext, sizeof(fovtext), "FOV: %d", saved_fov);
+            return fovtext;
+        case REF_STR_Resolutions: return "Resolution";
+        case REF_STR_Resolution0: case REF_STR_Resolution1:
+        case REF_STR_Resolution2: case REF_STR_Resolution3:
+            return resolution_labels[num - REF_STR_Resolution0];
+        case REF_STR_MoreResolutions: return resolution_more;
 		case REF_STR_FOV_Value:
 			memset(fovtext, 0, sizeof(fovtext));
 			sprintf(fovtext, "%d", saved_fov);
@@ -1265,7 +1276,8 @@ void wrapper_pushbutton_func(uchar butid) {
 		video_screen_master_init();
         break;
 #ifdef SVGA_SUPPORT
-    case SCREENMODE_BUTTON: // Input
+    case SCREENMODE_BUTTON: // Resolution
+        resolution_page = shock_valid_video_mode(mode_id) ? mode_id / 4 : 0;
         screenmode_screen_init();
         break;
     case HEAD_RECENTER_BUTTON: // Input
@@ -1481,13 +1493,10 @@ short global_fov = 80;
 short saved_fov = 80;
 
 static void fov_slider_dealfunc(short val) {
-	float newval = ((float)val / 100.0f);
-	short maxfov = max_fov;
-	short minfov = min_fov;
-	short newfov = minfov + ((maxfov - minfov) * newval);
+	short newfov = shock_fov_from_slider(val);
 	gShockPrefs.doFov = newfov;
 	saved_fov = newfov;
-	global_fov = gShockPrefs.doUseOpenGL ? 80 : newfov;
+	global_fov = newfov;
 	opanel_redraw(TRUE);
 }
 
@@ -1644,6 +1653,8 @@ void sound_screen_init(void) {
 uchar wrapper_screenmode_hack = FALSE;
 void screenmode_change(uchar new_mode) {
     extern short mode_id;
+    if (!shock_valid_video_mode(new_mode))
+        return;
     mode_id = new_mode;
     QUESTVAR_SET(SCREENMODE_QVAR, new_mode);
     change_mode_func(0, 0, _current_loop);
@@ -1943,8 +1954,6 @@ void video_screen_init(void) {
     // renderer
     if(can_use_opengl()) {
 
-		if (gShockPrefs.doUseOpenGL)
-			global_fov = 80;
 
         standard_button_rect(&r, i, 2, 2, 2);
         multi_init(i, 'g', REF_STR_Renderer, REF_STR_Software, ID_NULL,
@@ -2004,28 +2013,26 @@ void video_screen_init(void) {
 }
 
 void video_screen_master_init(void) {
-	LGRect r;
-	int i = 0;
-
-	clear_obuttons();
-
-	// actual original video options
-	standard_button_rect(&r, i, 2, 2, 2);
-	pushbutton_init(RENDERING_BUTTON, 'e', REF_STR_Rendering, wrapper_pushbutton_func, &r);
-
-	i++;
-
-	// new render preferences button (fov slider etc)
-	standard_button_rect(&r, i, 2, 2, 2);
-	pushbutton_init(RENDER_PREFS_BUTTON, 'p', REF_STR_RenderPrefs, wrapper_pushbutton_func, &r);
-
-	i++;
-
-	// return (fixed at position 5)
-	standard_button_rect(&r, 5, 2, 2, 2);
-	pushbutton_init(RETURN_BUTTON, 'r', REF_STR_OptionsText + 5, wrapper_pushbutton_func, &r);
-
-	opanel_redraw(TRUE);
+    LGRect r, right;
+    clear_obuttons();
+    saved_fov = global_fov = gShockPrefs.doFov;
+    standard_button_rect(&r, 0, 2, 2, 2);
+    pushbutton_init(RENDERING_BUTTON, 'e', REF_STR_Rendering, wrapper_pushbutton_func, &r);
+    standard_button_rect(&r, 1, 2, 2, 2);
+    pushbutton_init(SCREENMODE_BUTTON, 's', REF_STR_Resolutions, wrapper_pushbutton_func, &r);
+    standard_button_rect(&r, 2, 2, 2, 2);
+    multi_init(2, 'f', REF_STR_Fullscreen, REF_STR_OffonText, ID_NULL,
+               sizeof(gShockPrefs.doFullscreen), &gShockPrefs.doFullscreen, 2, fullscreen_dealfunc, &r);
+    fovsliderval = shock_fov_to_slider(gShockPrefs.doFov);
+    standard_slider_rect(&r, 3, 2, 2);
+    standard_slider_rect(&right, 4, 2, 2);
+    r.lr.x = right.lr.x;
+    slider_init(3, REF_STR_FOV, sizeof(fovsliderval), FALSE, &fovsliderval,
+                100, 0, fov_slider_dealfunc, &r);
+    standard_button_rect(&r, 5, 2, 2, 2);
+    pushbutton_init(RETURN_BUTTON, 'r', REF_STR_OptionsText + 5, wrapper_pushbutton_func, &r);
+    keywidget_init(QUIT_BUTTON, 'x', wrapper_pushbutton_func);
+    opanel_redraw(TRUE);
 }
 
 void renderprefs_screen_init(void)
@@ -2035,7 +2042,7 @@ void renderprefs_screen_init(void)
 
 	clear_obuttons();
 
-	fovsliderval = 100 * (short)(((float)global_fov - min_fov) / (max_fov - min_fov));
+	fovsliderval = shock_fov_to_slider(gShockPrefs.doFov);
 	standard_slider_rect(&r, i, 2, 5);
 	r.lr.x += (r.lr.x - r.ul.x);
 	r.ul.y -= 10;
@@ -2125,47 +2132,48 @@ void headset_screen_init(void) {
 #endif
 
 #ifdef SVGA_SUPPORT
+static void resolution_select(uchar button) {
+    int mode = resolution_page * 4 + button;
+    if (shock_valid_video_mode(mode))
+        screenmode_change(mode);
+}
+
+static void resolution_next_page(uchar unused) {
+    (void)unused;
+    resolution_page = (resolution_page + 1) % ((SHOCK_VIDEO_MODE_COUNT + 3) / 4);
+    screenmode_screen_init();
+}
+
 void screenmode_screen_init(void) {
     LGRect r;
-    int i;
-    char *keys;
-
     if (wrapper_screenmode_hack && !(can_use_opengl() && gShockPrefs.doUseOpenGL)) {
         uiHideMouse(NULL);
         render_run();
         uiShowMouse(NULL);
         wrapper_screenmode_hack = FALSE;
     }
-
-    keys = get_temp_string(REF_STR_KeyEquivs4);
-
     clear_obuttons();
-
-    for (i = 0; i < 5; i++) {
-        extern short svga_mode_data[];
-        uchar mode_ok = FALSE;
-        char j = 0;
+    for (int i = 0; i < 4; ++i) {
+        int mode = resolution_page * 4 + i;
         standard_button_rect(&r, i, 2, 2, 2);
-        pushbutton_init(i, keys[i], REF_STR_ScreenModeText + i, screenmode_change, &r);
-        while ((grd_info.modes[j] != -1) && !mode_ok) {
-            if (grd_info.modes[j] == svga_mode_data[i])
-                mode_ok = TRUE;
-            j++;
-        }
-        if (!mode_ok)
-            dim_pushbutton(i);
-        else if (i == convert_use_mode)
+        if (!shock_valid_video_mode(mode))
+            continue;
+        snprintf(resolution_labels[i], sizeof(resolution_labels[i]), "%dx%d",
+                 shock_video_sizes[mode][0], shock_video_sizes[mode][1]);
+        pushbutton_init(i, '1' + i, REF_STR_Resolution0 + i, resolution_select, &r);
+        if (mode == convert_use_mode)
             bright_pushbutton(i);
     }
-
+    snprintf(resolution_more, sizeof(resolution_more), "More %d/%d", resolution_page + 1,
+             (SHOCK_VIDEO_MODE_COUNT + 3) / 4);
+    standard_button_rect(&r, 4, 2, 2, 2);
+    pushbutton_init(4, 'm', REF_STR_MoreResolutions, resolution_next_page, &r);
     standard_button_rect(&r, 5, 2, 2, 2);
-    pushbutton_init(RETURN_BUTTON, keys[2], REF_STR_OptionsText + 5, wrapper_pushbutton_func, &r);
-
-    // FIXME: Cannot pass a keycode with modifier flags as uchar
-    keywidget_init(QUIT_BUTTON, /*KB_FLAG_ALT |*/ 'x', wrapper_pushbutton_func);
-
+    pushbutton_init(RETURN_BUTTON, 'r', REF_STR_OptionsText + 5, wrapper_pushbutton_func, &r);
+    keywidget_init(QUIT_BUTTON, 'x', wrapper_pushbutton_func);
     opanel_redraw(TRUE);
 }
+
 #endif
 
 void options_screen_init(void) {
