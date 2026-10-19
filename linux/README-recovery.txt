@@ -1,4 +1,16 @@
-Hex-Shockolate-Enhanced v0.4.0 — widescreen and FOV
+Hex-Shockolate-Enhanced v0.4.1 — texture-cache fixes and crash logging
+
+CRASH INVESTIGATION
+The reported v0.4.0 crash ended without a fault message; its precise cause is
+not established. This build fixes reproduced OpenGL texture-cache key collisions
+on 64-bit systems, owns cached bitmap pixels instead of retaining borrowed
+resource/unpack pointers, and uses the converted image pitch for GPU uploads.
+
+Common native faults now record the signal, instruction address and memory
+mappings in run.log. The launcher records nonzero exit status too, including
+process termination that cannot be handled inside the game. Include the complete
+new run.log if a crash recurs. Keep systemshock.debug: it matches this executable
+and allows the crash location to be decoded. Normal gameplay does not need it.
 
 VIDEO OPTIONS
 Open Video to find Resolution, Fullscreen, and the FOV slider.
@@ -23,7 +35,7 @@ mode; the chosen resolution controls rendering and may be scaled to that output.
 For native 4K output, use a 4K display and desktop/Steam display mode.
 
 SAVE COMPATIBILITY
-v0.3.3 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
+v0.3.3 and v0.4.0 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
 incompatible and are rejected before the world or working file is changed.
 All balance changes and the 28 general / 10 weapon slots are retained.
 

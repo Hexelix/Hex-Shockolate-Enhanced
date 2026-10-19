@@ -1,3 +1,4 @@
+#include "crash_report.h"
 /*
 
 Copyright (C) 2015-2018 Night Dive Studios, LLC.
@@ -97,6 +98,7 @@ int main(int argc, char **argv) {
     log_set_level(LOG_INFO);
 
     INFO("Logger initialized");
+    install_crash_reporter();
 
     // init mac managers
 

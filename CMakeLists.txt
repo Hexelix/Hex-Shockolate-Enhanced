@@ -148,6 +148,7 @@ feature_summary(WHAT DISABLED_FEATURES DESCRIPTION "Disabled features:")
 add_subdirectory(src/Libraries/)
 
 set(MAC_SRC
+	src/MacSrc/crash_report.c
 	src/MacSrc/ShockBitmap.c
 	src/MacSrc/InitMac.c
 	src/MacSrc/Shock.c
@@ -387,6 +388,7 @@ add_definitions(
 )
 
 add_executable(systemshock ${MAC_SRC})
+set_source_files_properties(src/MacSrc/crash_report.c PROPERTIES COMPILE_DEFINITIONS _GNU_SOURCE)
 
 # OpenGL loads these relative to the executable's working directory.
 add_custom_command(TARGET systemshock POST_BUILD

@@ -15,7 +15,7 @@ This fork adds:
 - Double plasma-gun base damage and railgun explosion damage, including its distance falloff and self-damage.
 - Linux build scripts, a game-data importer, and focused regression tests.
 
-**Save compatibility:** v0.4.0 accepts v0.3.3 ten-weapon saves. Earlier nine-weapon saves, including v0.3.2, and original-port saves are rejected before changing the game world. Purchased original game assets are required and are not included.
+**Save compatibility:** v0.4.1 accepts v0.3.3 and v0.4.0 ten-weapon saves. Earlier nine-weapon saves, including v0.3.2, and original-port saves are rejected before changing the game world. Purchased original game assets are required and are not included.
 
 For a standard Linux build, install CMake, a C/C++ compiler, pkg-config, SDL2/SDL2_mixer development packages and OpenGL development headers, then run `sh linux/build.sh`. See [Linux setup and validation notes](linux/README-build.txt) for package instructions and limitations. The static-mixer build script expects a sibling SDL_mixer source checkout as described there.
 

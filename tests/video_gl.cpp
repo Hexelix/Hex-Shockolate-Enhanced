@@ -5,6 +5,9 @@ extern "C" {
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Palette *sdlPalette;
+uint32_t texture_test_clock = 100;
+volatile uint32_t *tmd_ticks = &texture_test_clock;
+extern uchar *grd_unpack_buf;
 errtype render_run(void) { return OK; }
 }
 uchar wrapper_screenmode_hack;
@@ -24,6 +27,64 @@ int main(int argc, char **argv) {
     SDL_RenderSetLogicalSize(renderer, 1280, 800);
     SDL_GL_MakeCurrent(window, initial);
     assert(init_opengl() == 0);
+    // On 64-bit systems, OR-packing dimensions into a pointer loses bits.
+    grs_bitmap first = {}, second = {};
+    first.bits = second.bits = reinterpret_cast<uchar *>(uintptr_t(0x100001000));
+    first.w = 2; second.w = 3; first.h = second.h = 2;
+    // Make a real cache entry with a deliberately non-dereferenceable key.
+    texturesByBitsPtr.clear();
+    CachedTexture placeholder = {};
+    texturesByBitsPtr[texture_key(&first)] = placeholder;
+    assert(opengl_get_texture(&second) == nullptr);
+    texturesByBitsPtr.clear();
+
+    SDL_Color colors[256];
+    for (int i = 0; i < 256; ++i) colors[i] = SDL_Color{Uint8(i),Uint8(i),Uint8(i),255};
+    SDL_SetPaletteColors(opaquePalette, colors, 0, 256);
+    SDL_SetPaletteColors(transparentPalette, colors, 0, 256);
+    uchar pixels[] = {1,2,3,4,5,99,99,99,6,7,8,9,10,99,99,99};
+    grs_bitmap bm = {};
+    bm.bits = pixels; bm.w = 5; bm.h = 2; bm.row = 8; bm.type = BMT_FLAT8;
+    convert_texture(&bm, false);
+    CachedTexture *cached = opengl_get_texture(&bm);
+    assert(cached && cached->bitmap->pixels != pixels);
+    assert(((uchar *)cached->bitmap->pixels)[cached->bitmap->pitch] == 6);
+    memset(pixels, 20, sizeof(pixels));
+    set_texture(&bm);
+    uchar uploaded[5*2*4] = {};
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, uploaded);
+    for (int i = 0; i < 10; ++i) assert(uploaded[i*4] == 20);
+    opengl_clear_texture_cache();
+
+    // Locked wall slots are reused when levels change; refresh the owned copy.
+    convert_texture(&bm, true);
+    memset(pixels, 30, sizeof(pixels));
+    ++texture_test_clock;
+    palette_dirty = true;
+    set_texture(&bm);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, uploaded);
+    for (int i = 0; i < 10; ++i) assert(uploaded[i*4] == 30);
+    palette_dirty = false;
+    cached = opengl_get_texture(&bm);
+    SDL_FreeSurface(cached->bitmap);
+    SDL_FreeSurface(cached->converted);
+    glDeleteTextures(1, &cached->texture);
+    texturesByBitsPtr.clear();
+    bound_texture = -1;
+
+    // RSD decoding uses a shared scratch buffer; cached pixels must own a copy.
+    uchar rsd[] = {10,1,2,3,4,5,6,7,8,9,10,0x80,0,0};
+    uchar unpacked[10] = {};
+    grd_unpack_buf = unpacked;
+    bm.bits = rsd; bm.row = 5; bm.type = BMT_RSD8;
+    convert_texture(&bm, false);
+    cached = opengl_get_texture(&bm);
+    assert(cached && cached->bitmap->pixels != unpacked);
+    memset(unpacked, 77, sizeof(unpacked));
+    assert(((uchar *)cached->bitmap->pixels)[0] == 1);
+    set_texture(&bm);
+    opengl_clear_texture_cache();
+    grd_unpack_buf = nullptr;
     for (int pass = 0; pass < 2; ++pass) {
         for (int i = 5; i < SHOCK_VIDEO_MODE_COUNT; ++i) {
             int w = shock_video_sizes[i][0], h = shock_video_sizes[i][1];
@@ -52,5 +113,5 @@ int main(int argc, char **argv) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    puts("PASS OpenGL: real shaders and repeated widescreen/4K framebuffer allocation, fullscreen logical resizing and pixel readback");
+    puts("PASS OpenGL: real shaders/4K buffers, distinct 64-bit cache keys, owned flat/RSD pixels and padded-row uploads");
 }

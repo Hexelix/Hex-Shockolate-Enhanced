@@ -12,4 +12,10 @@ if [ ! -f res/data/cybstrng.res ] || [ ! -f res/data/objprop.dat ]; then
     echo 'Game data is missing. Run import-data.py with your sshock.kpf or original game directory first.' >&2
     exit 1
 fi
-exec ./systemshock "$@" >> run.log 2>&1
+if ./systemshock "$@" >> run.log 2>&1; then
+    exit 0
+else
+    status=$?
+    echo "Hex launcher: game exited with status $status" >> run.log
+    exit "$status"
+fi
