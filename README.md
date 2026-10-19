@@ -10,7 +10,6 @@ This fork adds:
 - Page Up/Down, the inventory mouse wheel, and repeated category-button clicks to change pages. Selecting an item or weapon reveals its page.
 - Horizontal mouselook that preserves lean and stance angular velocities.
 - 1.5× original medi-patch regeneration, retaining the taper and random expiration.
-- Berserk patches lasting 60 seconds of game time. A second dose refreshes the timer; save/load preserves remaining time, and Detox still works.
 - Double plasma-gun base damage and railgun explosion damage, including its distance falloff and self-damage.
 - Linux build scripts, a game-data importer, and focused regression tests.
 
