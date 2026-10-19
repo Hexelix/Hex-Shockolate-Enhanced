@@ -138,7 +138,7 @@ char *get_drug_name(int n, char *buf) {
 // Berserk uses elapsed game time, so pausing and save/load preserve its duration.
 void drug_berserk_use(void) {
     player_struct.berserk_started_at = player_struct.game_time;
-    INFO("Hex v0.3.2 recovery test: berserk applied; game_ticks=%u, target_ticks=%u, status=%d, detox_status=%d",
+    INFO("Hex v0.3.3: berserk applied; game_ticks=%u, target_ticks=%u, status=%d, detox_status=%d",
          player_struct.game_time, BERSERK_DURATION_TICKS, STATUS(DRUG_LSD), STATUS(DRUG_DETOX));
 }
 

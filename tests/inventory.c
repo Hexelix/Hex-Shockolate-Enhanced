@@ -6,7 +6,7 @@ short _current_loop;
 uint _change_flag;
 Player player_struct;
 int main(void) {
-    assert(NUM_GENERAL_SLOTS==28 && NUM_WEAPON_SLOTS==9);
+    assert(NUM_GENERAL_SLOTS==28 && NUM_WEAPON_SLOTS==10);
     inventory_page=INV_GENERAL_PAGE;
     assert(inventory_subpage_count(inventory_page)==2);
     assert(inventory_subpage(inventory_page)==0);
@@ -21,18 +21,19 @@ int main(void) {
     }
     inventory_page=INV_MAIN_PAGE;
     assert(inventory_subpage_count(inventory_page)==2);
-    inventory_reveal_slot(INV_MAIN_PAGE,8); assert(inventory_subpage(inventory_page)==1);
+    inventory_reveal_slot(INV_MAIN_PAGE,9); assert(inventory_subpage(inventory_page)==1);
     inventory_reveal_slot(INV_MAIN_PAGE,0); assert(inventory_subpage(inventory_page)==0);
     dp.relnum=1; dp.listlen=NUM_WEAPON_SLOTS;
     for(int row=0;row<7;++row)
-        assert(get_item_at_pixrow(&dp,INVENTORY_PANEL_Y+TOP_MARGIN+Y_STEP+row*Y_STEP)==(row<2 ? 7+row : -1));
+        assert(get_item_at_pixrow(&dp,INVENTORY_PANEL_Y+TOP_MARGIN+Y_STEP+row*Y_STEP)==(row<3 ? 7+row : -1));
     inventory_reveal_slot(INV_GENERAL_PAGE,0); assert(inventory_subpage(INV_GENERAL_PAGE)==0);
     inventory_reveal_slot(INV_GENERAL_PAGE,27); assert(inventory_subpage(INV_GENERAL_PAGE)==1);
     for(int i=0;i<NUM_WEAPON_SLOTS;++i) player_struct.weapons[i].type=0;
-    assert(inventory_next_weapon(0,-1)==8);
-    assert(inventory_next_weapon(8,1)==0);
+    assert(inventory_next_weapon(0,-1)==9);
+    assert(inventory_next_weapon(9,1)==0);
     assert(inventory_next_weapon(6,1)==7 && inventory_next_weapon(7,1)==8);
-    player_struct.weapons[7].type=player_struct.weapons[8].type=EMPTY_WEAPON_SLOT;
+    assert(inventory_next_weapon(8,1)==9 && inventory_next_weapon(9,-1)==8);
+    player_struct.weapons[7].type=player_struct.weapons[8].type=player_struct.weapons[9].type=EMPTY_WEAPON_SLOT;
     assert(inventory_next_weapon(0,-1)==6 && inventory_next_weapon(6,1)==0);
     inventory_page=INV_SOFTWARE_PAGE; assert(!inventory_turn_page(1));
     puts("PASS inventory: two pages, all 28 row mappings, extra weapons, empty-row bounds and selected-slot reveal");

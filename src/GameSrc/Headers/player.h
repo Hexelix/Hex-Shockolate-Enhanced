@@ -58,7 +58,7 @@ typedef uint8_t MFD_Status;
 #define MFD_UNAVAIL 3
 
 #define DEFAULT_FATIGUE_REGEN 50
-#define NUM_WEAPON_SLOTS 9
+#define NUM_WEAPON_SLOTS 10
 #define EMPTY_WEAPON_SLOT 0xFF
 #define NUM_GENERAL_SLOTS 28
 

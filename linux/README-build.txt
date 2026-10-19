@@ -1,4 +1,4 @@
-HEX-SHOCKOLATE-ENHANCED — DELAYED ECOLOGY LINUX BUILD (v0.3)
+HEX-SHOCKOLATE-ENHANCED — TEN-WEAPON LINUX BUILD (v0.3.3)
 
 Repository: https://github.com/Hexelix/Hex-Shockolate-Enhanced
 Based on MeeperTheGreat99/systemshock-enhanced, derived from Shockolate.
@@ -18,12 +18,12 @@ CHANGES IN THIS BUILD
 * Pending ecology events are stored in the existing level event queue and
   survive saves. They use game time, so pausing does not spend the delay.
 * General inventory: 28 slots (formerly 14), shown as two pages of 14 items.
-* Weapons: nine slots (formerly seven), shown as seven weapons then two.
+* Weapons: ten slots (formerly seven), shown as seven weapons then three.
 * Use Page Up / Page Down, scroll the wheel over the inventory, or click the
   active Weapons/General category button again to switch pages. Titles show
   1/2 or 2/2. Grenades and patches remain visible on both weapon pages.
   Selecting a weapon or general item reveals its page automatically.
-  Tab / Shift+Tab and weapon-wheel cycling include all nine weapon slots.
+  Tab / Shift+Tab and weapon-wheel cycling include all ten weapon slots.
 * Medi-patches: 1.5x original regeneration (reduced from the earlier 2x).
   The initial regeneration value is 645 rather than 430. The cumulative taper
   is rounded to whole units at each stage and cleanup returns to zero.
@@ -36,24 +36,21 @@ CHANGES IN THIS BUILD
   Railgun splash damage to you is increased too; radius/ammo cost unchanged.
 
 SAVE COMPATIBILITY
-This ecology update accepts v0.2 expanded-inventory saves; no new game is
-required when upgrading from v0.2. Pending timers use the existing level
-scheduler, and the player-save layout has not changed in v0.3.
-
-Saves from Nightdive, upstream Shockolate and the earlier seven-weapon build
-remain incompatible with the expanded inventory. Start a new game if coming
-from those versions. Keep old saves in a separate folder.
+This ten-weapon build requires a new game. The player save layout now stores
+one more weapon than v0.3.2. Saves from earlier builds, Nightdive and upstream
+Shockolate are rejected before the game world or working file is changed.
+Keep old saves in a separate folder.
 
 STEAM DECK SETUP — DESKTOP MODE
 1. Extract this archive into its own folder, such as
-   /home/deck/Games/Hex-Shockolate-Enhanced-v0.3.
+   /home/deck/Games/Hex-Shockolate-Enhanced-v0.3.3.
 2. Browse the Steam Enhanced Edition installation to locate sshock.kpf.
    Open a terminal in the extracted folder and run:
      python3 import-data.py "/full/path/to/sshock.kpf"
    Alternatively provide the original CD/Classic SSHOCK directory containing
    DATA and SOUND. The importer copies files into res/data and res/sound;
    it does not modify the originals. You can also copy the res folder from
-   your previous source-port setup. v0.2 saves can also be used with this build.
+   your previous source-port setup. Start a new game; do not copy old saves.
 3. Run:
      chmod +x systemshock launch.sh
      ./launch.sh -fullscreen
@@ -62,7 +59,7 @@ STEAM DECK SETUP — DESKTOP MODE
    Use Steam Input keyboard/mouse bindings: WASD movement, F mouselook,
    Q/E lean, T/G/B stand/crouch/prone, C quick pickup, Tab/Shift+Tab weapon
    cycling. Bind Page Up/Down to spare buttons for the new inventory pages.
-5. Load a v0.2 save or begin a new game, and test before a long session.
+5. Begin a new game and test before a long session.
 
 The launcher writes run.log in this folder. If required game data is missing,
 it stops with a message. The original Steam installation remains separate.
@@ -83,7 +80,7 @@ arrangement supplied here, instead run:
   sh source/systemshock-enhanced/linux/build-static-mixer.sh
 The included sibling source/SDL_mixer directory supplies its source.
 Use a fresh build directory when switching build methods/compilers.
-The delivered binary uses GCC 13.3 (C), GCC 11.4 (C++) and Ubuntu 22.04
+The delivered binary uses GCC 11.4 (C and C++) and Ubuntu 22.04
 libc development headers for its runtime baseline. Rebuilding on another
 system can change the required runtime versions.
 
@@ -93,7 +90,7 @@ Release build completed. Focused tests compile production code and cover:
 * All 1.5x medic taper stages and cleanup of overlapping doses.
 * Berserk's one-minute boundary, refreshed doses, timer wraparound, and its
   exemption from random/fatigue decay.
-* Encoding/decoding all 28 general slots, nine weapons, active selections,
+* Encoding/decoding all 28 general slots, ten weapons, active selections,
   remaining berserk time, and the declared player-save resource size.
 * Inventory page wrapping, row mapping through slot 28, selecting the final
   slots, blank rows on weapon page two, and forward/backward weapon cycling.

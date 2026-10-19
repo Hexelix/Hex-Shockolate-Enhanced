@@ -119,13 +119,13 @@ const ResLayout STRUCTNAME(PlayerLayout_M, PL_MFD_PUZZLE_SIZE) =
     { RFFT_BIN(294),  offsetof(Player, email)              },  //uchar [294]
     { RFFT_BIN(14),   offsetof(Player, logs)               },  //ubyte [14]
 
-    //weapon_slot weapons[9];
+    //weapon_slot weapons[10];
     #define L(x)  { RFFT_UINT8, offsetof(Player, weapons[x].type)      }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].subtype)   }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].ammo)      }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].ammo_type) }, \
                   { RFFT_UINT8, offsetof(Player, weapons[x].make_info) }
-    L(0),L(1),L(2),L(3),L(4),L(5),L(6),L(7),L(8),
+    L(0),L(1),L(2),L(3),L(4),L(5),L(6),L(7),L(8),L(9),
     #undef L
 
     { RFFT_BIN(15), offsetof(Player, hardwarez_status)        },  //ubyte [15]

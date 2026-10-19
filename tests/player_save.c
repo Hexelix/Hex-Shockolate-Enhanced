@@ -23,7 +23,7 @@ int main(void) {
         src.weapons[i].ammo_type=i%3;
         src.weapons[i].make_info=70+i;
     }
-    src.hit_points=99; src.hit_points_regen=645; src.actives[ACTIVE_WEAPON]=8;
+    src.hit_points=99; src.hit_points_regen=645; src.actives[ACTIVE_WEAPON]=9;
     src.actives[ACTIVE_GENERAL]=27; src.pad[8]=123;
     // Detect declared disc-size mistakes even if they don't crash the allocator.
     size_t field_bytes=0;
@@ -32,7 +32,7 @@ int main(void) {
             f->type==RFFT_UINT8 ? 1 : f->type==RFFT_UINT16 ? 2 :
             f->type==RFFT_PAD ? f->offset : 4;
     assert(field_bytes==PlayerLayout_M64.dsize);
-    assert(field_bytes==1471);
+    assert(field_bytes==1476);
     size_t size=sizeof src;
     void *raw=ResEncode(&src,&size,(UserDecodeData)&PlayerLayout_M64);
     assert(size==field_bytes);
@@ -41,8 +41,8 @@ int main(void) {
     assert(memcmp(src.inventory,dst->inventory,sizeof src.inventory)==0);
     assert(memcmp(src.weapons,dst->weapons,sizeof src.weapons)==0);
     assert(src.berserk_started_at==dst->berserk_started_at && src.game_time==dst->game_time);
-    assert(dst->drug_status[DRUG_LSD]==4 && dst->actives[ACTIVE_GENERAL]==27 && dst->actives[ACTIVE_WEAPON]==8);
+    assert(dst->drug_status[DRUG_LSD]==4 && dst->actives[ACTIVE_GENERAL]==27 && dst->actives[ACTIVE_WEAPON]==9);
     assert(dst->hit_points==99 && dst->hit_points_regen==645 && dst->pad[8]==123);
     free(dst);free(raw);
-    puts("PASS save: all 28 items, nine weapons, active selections and remaining berserk time survive encode/decode");
+    puts("PASS save: all 28 items, ten weapons, active selections and remaining berserk time survive encode/decode");
 }

@@ -1,27 +1,25 @@
-Hex-Shockolate-Enhanced v0.3.2 RECOVERY TEST
+Hex-Shockolate-Enhanced v0.3.3 — ten weapon slots
 
-This is a test build, not a confirmed resolution of the reported instability.
-It contains a complete clean rebuild and includes the OpenGL shaders missing
-from earlier packages. Incompatible saves are checked before the active game
-is closed or its working file is overwritten. Physics failures now log the
-player's tile coordinates. Berserk lifecycle logging remains enabled.
+Weapons now have ten slots: seven on page one and three on page two.
+General inventory remains 28 slots, on two pages of 14. Click the active
+category again, use Page Up / Page Down, or scroll over the inventory to
+change pages. Weapon cycling includes all ten slots.
 
-Extract this entire archive into a NEW folder. Do not replace just the binary.
-Import your purchased game data with import-data.py and launch with launch.sh.
-Keep your existing installation and saves as a backup. Start a new game for
-this test; Nightdive/upstream/seven-weapon saves are incompatible. Expanded
-v0.2/v0.3 saves retain the same player layout, but are not needed for this test.
+SAVE COMPATIBILITY
+Start a new game. The additional weapon changes the saved player layout.
+Nine-weapon saves (including v0.3.2) and earlier saves are incompatible and
+are rejected before the game world or working file is changed.
 
-General inventory has 28 slots. Click the selected General category again,
-or use Page Up / Page Down, to switch between pages of 14 items. Weapons
-have nine slots, on pages of seven and two. These are inventory list pages,
-not the MFD automap/logbook pages.
+INSTALLATION
+Extract this complete archive into a new folder. Import your purchased data:
+  python3 import-data.py "/full/path/to/sshock.kpf"
+Alternatively copy the res folder from your previous installation.
+Run ./launch.sh, or add it to Steam with forced Proton compatibility off.
+Keep your previous installation and saves separately.
 
-The requested 1.5x medi-patch regeneration, 60-game-second berserk, doubled
-railgun/plasma damage and 30-120-second ecology delay are retained.
+This includes the v0.3.2 save-check fixes and all five required OpenGL shaders.
+The existing balance changes remain: 1.5x medi-patch regeneration, 60-game-
+second berserk, doubled railgun/plasma damage and 30-120-second ecology delay.
+Berserk lifecycle logging remains enabled in run.log.
 
-If problems remain, return run.log from this new folder and describe what
-happened (movement, inventory, graphics, patches, or another symptom). The
-earlier log contained no berserk dose, so it could not explain its expiry.
-
-Source and licenses are included in source/. No purchased game data is included.
+Source and licenses are included in source/. Purchased game data is not included.

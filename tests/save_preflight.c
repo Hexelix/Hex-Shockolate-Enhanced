@@ -40,6 +40,11 @@ int main(void) {
     assert(validate_player_save(path) == OK);
     fixture(path, PlayerLayout_M32.dsize, 0);
     assert(validate_player_save(path) == OK);
+    // Nine-weapon saves differ by exactly one five-byte weapon record.
+    fixture(path, PlayerLayout_M64.dsize - 5, 0);
+    assert(validate_player_save(path) != OK);
+    fixture(path, PlayerLayout_M32.dsize - 5, 0);
+    assert(validate_player_save(path) != OK);
     fixture(path, PlayerLayout_M64.dsize - 50, 0);
     assert(validate_player_save(path) != OK);
     fixture(path, PlayerLayout_M64.dsize, 1);
