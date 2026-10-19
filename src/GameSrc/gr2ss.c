@@ -479,21 +479,32 @@ short ss_curr_mode_height(void) { return (SCONV_Y(convert_y[convert_type][0])); 
 // then MODE_SCONV_X will act as if you are in mode M
 // otherwise it behaves like SCONV_{X,Y}
 short MODE_SCONV_X(short cval, short m) {
+#ifdef STEREO_SUPPORT
     if ((!m) || (convert_use_mode != 5))
         return (SCONV_X(cval));
     return (fast_fix_mul_int(fix_make(cval, 0), convert_x[convert_type][m]));
+#else
+    (void)m;
+    return SCONV_X(cval);
+#endif
 }
 
 short MODE_SCONV_Y(short cval, short m) {
+#ifdef STEREO_SUPPORT
     if ((!m) || (convert_use_mode != 5))
         return (SCONV_Y(cval));
     return (fast_fix_mul_int(fix_make(cval, 0), convert_y[convert_type][m]));
+#else
+    (void)m;
+    return SCONV_Y(cval);
+#endif
 }
 
 // This allows us to override the real mode with some
 // fake pretender mode, but only if we are in the magic hack mode 5
 short hack_mode_on;
 void ss_set_hack_mode(short new_m, short *tval) {
+#ifdef STEREO_SUPPORT
     if ((convert_use_mode != 5) && (!hack_mode_on))
         return;
     if (new_m) {
@@ -504,6 +515,12 @@ void ss_set_hack_mode(short new_m, short *tval) {
         convert_use_mode = *tval;
         hack_mode_on--;
     }
+#else
+    // Legacy stereo mode 5 now overlaps the 1280x720 video mode. Ordinary
+    // widescreen rendering must never switch scales for this stereo helper.
+    (void)new_m;
+    (void)tval;
+#endif
 }
 
 #endif

@@ -69,6 +69,18 @@ subprocess.run(args+[str(root/'tests/video.c')]+objects+[str(log_obj),
     '-lm','-Wl,--gc-sections','-o',str(exe)],cwd=item['directory'],check=True)
 subprocess.run([str(exe)],check=True)
 
+# Exercise actual puzzle resource loading and bitmap scaling without game data.
+cursor_args,cursor_item=settings('GameSrc/citres.c')
+cursor_obj=out/'puzzle-cursor.o'
+subprocess.run(cursor_args+['-c',cursor_item['file'],'-o',str(cursor_obj)],cwd=cursor_item['directory'],check=True)
+cursor_exe=out/'puzzle-cursor'
+subprocess.run(cursor_args+[str(root/'tests/puzzle_cursor.c'),str(cursor_obj),
+    str(out/'video-gr2ss.o'),str(log_obj),
+    '-Wl,--start-group',str(build/'src/Libraries/lib2D_LIB.a'),
+    str(build/'src/Libraries/libLG_LIB.a'),str(build/'src/Libraries/libFIX_LIB.a'),
+    '-Wl,--end-group','-lm','-Wl,--gc-sections','-o',str(cursor_exe)],cwd=cursor_item['directory'],check=True)
+subprocess.run([str(cursor_exe)],check=True)
+
 if '--opengl' in sys.argv:
     # Optional: needs SDL's offscreen OpenGL backend (Mesa on the build host).
     args,item=settings('MacSrc/OpenGL.cc')

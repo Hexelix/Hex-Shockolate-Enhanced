@@ -1,4 +1,4 @@
-HEX-SHOCKOLATE-ENHANCED — WIDESCREEN LINUX BUILD (v0.4.2)
+HEX-SHOCKOLATE-ENHANCED — WIDESCREEN LINUX BUILD (v0.4.3)
 
 Repository: https://github.com/Hexelix/Hex-Shockolate-Enhanced
 Based on MeeperTheGreat99/systemshock-enhanced, derived from Shockolate.
@@ -44,13 +44,13 @@ CHANGES IN THIS BUILD
   Railgun splash damage to you is increased too; radius/ammo cost unchanged.
 
 SAVE COMPATIBILITY
-v0.4.2 accepts v0.3.3 through v0.4.1 ten-weapon saves. Nine-weapon and earlier saves remain
+v0.4.3 accepts v0.3.3 through v0.4.2 ten-weapon saves. Nine-weapon and earlier saves remain
 incompatible and are rejected before changing game state. See the included
 README-recovery.txt for widescreen resolution/FOV controls and update setup.
 
 STEAM DECK SETUP — DESKTOP MODE
 1. Extract this archive into its own folder, such as
-   /home/deck/Games/Hex-Shockolate-Enhanced-v0.4.2.
+   /home/deck/Games/Hex-Shockolate-Enhanced-v0.4.3.
 2. Browse the Steam Enhanced Edition installation to locate sshock.kpf.
    Open a terminal in the extracted folder and run:
      python3 import-data.py "/full/path/to/sshock.kpf"

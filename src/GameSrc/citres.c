@@ -78,6 +78,8 @@ errtype master_load_bitmap_from_res(grs_bitmap *bmp, Id id_num, int i, LGRect *a
     if (p == NULL) {
 	// Caller wants us to allocate a framebuffer.
         p = malloc(f->bm.w * f->bm.h);
+        if (p == NULL)
+            return ERR_NOMEM;
     }
 
     if (anchor != NULL)
@@ -158,13 +160,15 @@ errtype load_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid, uchar allo
     short w, h;
     short temp;
     uchar *bits;
-    grs_bitmap temp_bmp;
+    grs_bitmap temp_bmp = {0};
     grs_canvas temp_canv;
     uchar old_over = gr2ss_override;
     ss_set_hack_mode(2, &temp);
 
     gr2ss_override = OVERRIDE_ALL;
-    master_load_bitmap_from_res(&temp_bmp, REFID(rid), REFINDEX(rid), &anchor, NULL);
+    retval = master_load_bitmap_from_res(&temp_bmp, REFID(rid), REFINDEX(rid), &anchor, NULL);
+    if (retval != OK)
+        goto restore_mode;
     w = temp_bmp.w;
     h = temp_bmp.h;
     ss_point_convert(&w, &h, FALSE);
@@ -172,8 +176,11 @@ errtype load_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid, uchar allo
         bits = (uchar *)malloc(sizeof(char) * w * h);
     else
         bits = bmp->bits;
-    if (temp_bmp.bits == NULL)
-        critical_error(CRITERR_MEM | 5);
+    if (bits == NULL) {
+        free(temp_bmp.bits);
+        retval = ERR_NOMEM;
+        goto restore_mode;
+    }
     gr_init_bm(bmp, bits, BMT_FLAT8, BMF_TRANS, w, h);
     gr_make_canvas(bmp, &temp_canv);
     gr_push_canvas(&temp_canv);
@@ -187,6 +194,7 @@ errtype load_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid, uchar allo
     //   gr_set_pixel(34,anchor.ul.x,anchor.ul.y);  // test test test
     gr_pop_canvas();
     retval = uiMakeBitmapCursor(c, bmp, anchor.ul);
+restore_mode:
     ss_set_hack_mode(0, &temp);
     gr2ss_override = old_over;
 #else
@@ -197,6 +205,22 @@ errtype load_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid, uchar allo
     }
 #endif
     return retval;
+}
+
+errtype replace_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid) {
+    LGCursor next_cursor = {0};
+    grs_bitmap next_bitmap = {0};
+    errtype err = load_res_bitmap_cursor(&next_cursor, &next_bitmap, rid, TRUE);
+    if (err != OK) {
+        free(next_bitmap.bits);
+        return err;
+    }
+    free(bmp->bits);
+    *bmp = next_bitmap;
+    *c = next_cursor;
+    // uiMakeBitmapCursor stored the address of our temporary bitmap.
+    c->state = bmp;
+    return OK;
 }
 
 errtype simple_load_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid) {

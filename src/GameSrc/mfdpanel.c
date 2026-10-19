@@ -123,12 +123,6 @@ int gpz_dk_colors[] = {0x7E, 0x63, 0x27, 0x56, GRAY_BASE + 13};
 
 LGCursor gridCursor;
 grs_bitmap gridCursorbm;
-#ifdef SVGA_SUPPORT
-uchar
-    gridCursorBits[1016]; // This should be enough, maybe... note wacky computation scaling 9x9 to apropos for 1024x768
-#else
-uchar gridCursorBits[81]; // This should be enough
-#endif
 
 //#define score_spew(str,v)    mprintf(str,v)
 //#define score_spew2(str,v,o) mprintf(str,v,o)
@@ -907,7 +901,6 @@ errtype mfd_gridpanel_init(MFD_Func *f) {
     if (err != OK)
         return err;
     f->handler_count = cnt;
-    gridCursorbm.bits = gridCursorBits;
     return OK;
 }
 
@@ -1602,7 +1595,7 @@ uchar mfd_gridpanel_handler(MFD *m, uiEvent *ev) {
     r.lr.x = r.ul.x + cc * GRIDP_BTN_WD;
     RECT_MOVE(&r, m->rect.ul);
     uiGetRegionCursorStack(&m->reg, &cs);
-    if (RECT_TEST_PT(&r, ev->pos)) {
+    if (gridCursor.state != NULL && RECT_TEST_PT(&r, ev->pos)) {
         uiPushCursorOnce(cs, &gridCursor);
     } else {
         uiPopCursorEvery(cs, &gridCursor);
@@ -1762,7 +1755,10 @@ void mfd_gridpanel_expose(MFD *mfd, ubyte control) {
         lry = uly + rr * GRIDP_BTN_HGT;
 
         if (full) {
-            load_res_bitmap_cursor(&gridCursor, &gridCursorbm, REF_IMG_RookSymbol + gfpz->gfLayout.control_alg, FALSE);
+            // The scaled puzzle cursor can exceed the original 1016-byte
+            // buffer even at Deck resolution. Keep its storage sized to the
+            // current mode, including when reopening after a mode change.
+            replace_res_bitmap_cursor(&gridCursor, &gridCursorbm, REF_IMG_RookSymbol + gfpz->gfLayout.control_alg);
             mfd_clear_view();
         }
 

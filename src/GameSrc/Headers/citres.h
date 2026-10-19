@@ -48,6 +48,8 @@ errtype simple_load_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid);
 // loads a bitmap, specifying whether to malloc the bits or not.
 errtype load_res_bitmap(grs_bitmap *bmp, Ref rid, uchar alloc);
 errtype load_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid, uchar alloc);
+// Replace an owned cursor bitmap without leaking storage on repeated loads.
+errtype replace_res_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid);
 errtype load_hires_bitmap_cursor(LGCursor *c, grs_bitmap *bmp, Ref rid, uchar alloc);
 
 // Globals

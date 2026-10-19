@@ -1,6 +1,21 @@
-Hex-Shockolate-Enhanced v0.4.2 — shadow brightness and cyberspace strafing
+Hex-Shockolate-Enhanced v0.4.3 — puzzle cursor recovery
 
-NEW IN v0.4.2
+NEW IN v0.4.3
+The grid puzzle cursor now uses storage sized to the selected resolution.
+The old fixed 1016-byte buffer overflowed at Deck resolution and overwrote
+the cursor bitmap and cursor structure. Repeated puzzle openings and video
+mode changes replace the owned bitmap safely. A failed resource load keeps
+the previous cursor. The obsolete stereo scale override is disabled in this
+non-stereo build, fixing cursor/UI scaling at 1280x720.
+
+The attached v0.4.2 log confirms a null-address segmentation fault in libc.
+The cursor overflow is a concrete bug matching the reported symptoms; the
+log alone does not establish the complete crashing call chain. Regression
+tests exercise real bitmap loading/scaling through all 13 resolutions,
+repeated replacement and resource failures. Full gameplay validation on
+Steam Deck remains necessary.
+
+RETAINED FROM v0.4.2
 OpenGL deep shadows are gently lifted without changing brighter lighting.
 Start with the default 12% strength. To tune by eye, open:
   Video > Rendering > Shadows
@@ -51,7 +66,7 @@ mode; the chosen resolution controls rendering and may be scaled to that output.
 For native 4K output, use a 4K display and desktop/Steam display mode.
 
 SAVE COMPATIBILITY
-v0.3.3 through v0.4.1 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
+v0.3.3 through v0.4.2 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
 incompatible and are rejected before the world or working file is changed.
 All balance changes and the 28 general / 10 weapon slots are retained.
 
