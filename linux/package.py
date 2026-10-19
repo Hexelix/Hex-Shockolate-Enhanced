@@ -23,6 +23,8 @@ shutil.copy2(binary, dest / 'systemshock')
 subprocess.run(['objcopy', '--only-keep-debug', str(binary), str(dest / 'systemshock.debug')], check=True)
 subprocess.run(['strip', str(dest / 'systemshock')], check=True)
 subprocess.run(['objcopy', '--add-gnu-debuglink=systemshock.debug', 'systemshock'], cwd=dest, check=True)
+(dest / 'systemshock').chmod(0o755)
+(dest / 'systemshock.debug').chmod(0o644)
 shutil.copytree(root / 'shaders', dest / 'shaders')
 for name in ['launch.sh', 'import-data.py', 'README-recovery.txt']:
     shutil.copy2(root / 'linux' / name, dest / name)

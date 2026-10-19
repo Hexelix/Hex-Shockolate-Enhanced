@@ -94,6 +94,7 @@ static const char *PREF_MIDI_BACKEND = "midi-backend";
 static const char *PREF_MIDI_OUTPUT = "midi-output";
 static const char *PREF_PERSIST_MLOOK = "persist-mouselook";
 static const char *PREF_FOV = "fov";
+static const char *PREF_SHADOW_LIFT = "shadow-lift";
 static const char *PREF_FULLSCREEN = "fullscreen";
 
 static void SetShockGlobals(void);
@@ -129,6 +130,7 @@ void SetDefaultPrefs(void) {
     gShockPrefs.doDetail = 3;     // Max detail.
     gShockPrefs.doUseOpenGL = false;
     gShockPrefs.doTextureFilter = 0; // unfiltered
+    gShockPrefs.doShadowLift = 12;
 	gShockPrefs.doFullscreen = false; // Windowed mode
     gShockPrefs.goOnScreenHelp = true;
     gShockPrefs.doGamma = 29;    // Default gamma (29 out of 100).
@@ -260,7 +262,9 @@ int16_t LoadPrefs(void) {
 		}
 		else if (strcasecmp(key, PREF_PERSIST_MLOOK) == 0) {
 			gShockPrefs.goPersistMLook = is_true(value);
-		} else if (strcasecmp(key, PREF_FOV) == 0) {
+		} else if (strcasecmp(key, PREF_SHADOW_LIFT) == 0) {
+            gShockPrefs.doShadowLift = lg_max(0, lg_min(30, atoi(value)));
+        } else if (strcasecmp(key, PREF_FOV) == 0) {
 			int fov = atoi(value);
 			if (fov < min_fov)
 				fov = min_fov;
@@ -310,6 +314,7 @@ int16_t SavePrefs(void) {
     fprintf(f, "%s = %d\n", PREF_MIDI_OUTPUT, gShockPrefs.soMidiOutput);
 	fprintf(f, "%s = %s\n", PREF_PERSIST_MLOOK, gShockPrefs.goPersistMLook ? "yes" : "no");
 	fprintf(f, "%s = %d\n", PREF_FOV, gShockPrefs.doFov);
+    fprintf(f, "%s = %d\n", PREF_SHADOW_LIFT, gShockPrefs.doShadowLift);
 	fprintf(f, "%s = %s\n", PREF_FULLSCREEN, gShockPrefs.doFullscreen ? "yes" : "no");
     fclose(f);
     return 0;

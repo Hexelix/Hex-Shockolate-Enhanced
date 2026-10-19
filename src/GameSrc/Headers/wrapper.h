@@ -114,6 +114,8 @@ enum TEMP_STR_ {
     REF_STR_Resolution3,
     REF_STR_MoreResolutions,
     REF_STR_Resolutions,
+    REF_STR_Shadows,
+    REF_STR_ShadowOptions,
 
     REF_STR_TextFilt = 0x10000010,
     REF_STR_TFUnfil, // unfiltered

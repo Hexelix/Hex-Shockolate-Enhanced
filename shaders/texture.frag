@@ -11,6 +11,12 @@ varying float Light;
 uniform sampler2D tex;
 uniform bool nightsight;
 uniform bool mutant;
+uniform float shadowLift;
+
+// Raise deep shadows gently; leave lighting >= 0.5 unchanged.
+float lift_shadows(float light) {
+    return light + shadowLift * (1.0 - smoothstep(0.0, 0.5, light)) * (1.0 - light);
+}
 
 void main() {
     vec4 t = texture2D(tex, TexCoords);
@@ -26,7 +32,7 @@ void main() {
         gl_FragColor = vec4(rg, rg, b, (mutant ? 0.2 * alpha : alpha));
     } else {
         float emissive = t.a > 0.5 ? (t.a - 0.5) * 2.0 : 0.0;
-        float light = max(Light * Light, emissive);
+        float light = lift_shadows(max(Light * Light, emissive));
 		
         if (mutant)
             gl_FragColor = vec4(0.5 * t.r * light, 0.5 * t.r * light, 0.5 * t.r * light, 0.2 * alpha);

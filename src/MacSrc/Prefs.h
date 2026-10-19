@@ -62,6 +62,7 @@ typedef struct {
     // 1 => bilinear
     // TODO: add trilinear, anisotropic?
     short doTextureFilter;
+    short doShadowLift; // 0-30 percent; lift dark OpenGL lighting only
 } ShockPrefs;
 
 //--------------------

@@ -1,10 +1,12 @@
-HEX-SHOCKOLATE-ENHANCED — WIDESCREEN LINUX BUILD (v0.4.1)
+HEX-SHOCKOLATE-ENHANCED — WIDESCREEN LINUX BUILD (v0.4.2)
 
 Repository: https://github.com/Hexelix/Hex-Shockolate-Enhanced
 Based on MeeperTheGreat99/systemshock-enhanced, derived from Shockolate.
 GPL-3.0-or-later. Purchased original game data is required and not included.
 
 CHANGES IN THIS BUILD
+* Adjustable shadow lift for OpenGL, default 12%, preserving bright lighting.
+* Keyboard left/right turns in cyberspace become collision-aware side thrust.
 * Texture cache uses distinct 64-bit keys and owns its decoded pixels.
 * Row-padded textures upload using the converted RGBA pitch.
 * Native fault location / launcher exit logging and matching debug symbols.
@@ -42,13 +44,13 @@ CHANGES IN THIS BUILD
   Railgun splash damage to you is increased too; radius/ammo cost unchanged.
 
 SAVE COMPATIBILITY
-v0.4.1 accepts v0.3.3 ten-weapon saves. Nine-weapon and earlier saves remain
+v0.4.2 accepts v0.3.3 through v0.4.1 ten-weapon saves. Nine-weapon and earlier saves remain
 incompatible and are rejected before changing game state. See the included
 README-recovery.txt for widescreen resolution/FOV controls and update setup.
 
 STEAM DECK SETUP — DESKTOP MODE
 1. Extract this archive into its own folder, such as
-   /home/deck/Games/Hex-Shockolate-Enhanced-v0.4.1.
+   /home/deck/Games/Hex-Shockolate-Enhanced-v0.4.2.
 2. Browse the Steam Enhanced Edition installation to locate sshock.kpf.
    Open a terminal in the extracted folder and run:
      python3 import-data.py "/full/path/to/sshock.kpf"

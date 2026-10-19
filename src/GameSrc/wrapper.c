@@ -353,6 +353,7 @@ uchar fv;
 static char MIDI_STR_BUFFER[MIDI_OUT_STR_SIZE];
 
 char fovtext[20];
+static char shadow_text[24];
 extern short mode_id;
 static int resolution_page = 0;
 static char resolution_labels[4][24];
@@ -369,6 +370,10 @@ static char *_get_temp_string(int num) {
             snprintf(fovtext, sizeof(fovtext), "FOV: %d", saved_fov);
             return fovtext;
         case REF_STR_Resolutions: return "Resolution";
+        case REF_STR_ShadowOptions: return "Shadows";
+        case REF_STR_Shadows:
+            snprintf(shadow_text, sizeof(shadow_text), "Shadows: %d%%", gShockPrefs.doShadowLift);
+            return shadow_text;
         case REF_STR_Resolution0: case REF_STR_Resolution1:
         case REF_STR_Resolution2: case REF_STR_Resolution3:
             return resolution_labels[num - REF_STR_Resolution0];
@@ -1963,9 +1968,9 @@ void video_screen_init(void) {
 #endif
 
 #ifdef SVGA_SUPPORT
-    // video mode
+    // Resolution is on the main Video page; use this entry for shadow tuning.
     standard_button_rect(&r, i, 2, 2, 2);
-    pushbutton_init(SCREENMODE_BUTTON, keys[0], REF_STR_VideoText, wrapper_pushbutton_func, &r);
+    pushbutton_init(RENDER_PREFS_BUTTON, 's', REF_STR_ShadowOptions, wrapper_pushbutton_func, &r);
     i++;
 #endif
 
@@ -2035,46 +2040,23 @@ void video_screen_master_init(void) {
     opanel_redraw(TRUE);
 }
 
-void renderprefs_screen_init(void)
-{
-	LGRect r;
-	int i = 0;
+static void shadows_dealfunc(short value) {
+    gShockPrefs.doShadowLift = lg_max(0, lg_min(30, value));
+    opanel_redraw(TRUE);
+}
 
-	clear_obuttons();
-
-	fovsliderval = shock_fov_to_slider(gShockPrefs.doFov);
-	standard_slider_rect(&r, i, 2, 5);
-	r.lr.x += (r.lr.x - r.ul.x);
-	r.ul.y -= 10;
-	r.lr.y -= 10;
-	slider_init(i, REF_STR_FOV, sizeof(fovsliderval), FALSE, &fovsliderval, 100,
-		0, fov_slider_dealfunc, &r);
-
-	i++;
-
-	standard_button_rect(&r, i, 1, 2, 10);
-	int textoffset = (r.lr.x - r.ul.x) * 1;
-	r.lr.x += textoffset;
-	r.ul.x += textoffset;
-	r.lr.y -= 5;
-	r.ul.y -= 5;
-	textwidget_init(i, BUTTON_COLOR, REF_STR_FOV_Value, &r);
-	fovtextactive = true;
-	fovtextid = i;
-
-	i++;
-	i++;
-
-	standard_button_rect(&r, i, 2, 2, 2);
-	multi_init(i, 'f', REF_STR_Fullscreen, REF_STR_OffonText, ID_NULL,
-		sizeof(gShockPrefs.doFullscreen), &(gShockPrefs.doFullscreen), 2, fullscreen_dealfunc, &r);
-
-	i++;
-
-	standard_button_rect(&r, 5, 2, 2, 2);
-	pushbutton_init(RETURN_BUTTON, 'r', REF_STR_OptionsText + 5, wrapper_pushbutton_func, &r);
-
-	opanel_redraw(TRUE);
+void renderprefs_screen_init(void) {
+    LGRect r, right;
+    clear_obuttons();
+    standard_slider_rect(&r, 0, 2, 2);
+    standard_slider_rect(&right, 1, 2, 2);
+    r.lr.x = right.lr.x;
+    slider_init(0, REF_STR_Shadows, sizeof(gShockPrefs.doShadowLift), FALSE,
+                &gShockPrefs.doShadowLift, 30, 0, shadows_dealfunc, &r);
+    standard_button_rect(&r, 5, 2, 2, 2);
+    pushbutton_init(RETURN_BUTTON, 'r', REF_STR_OptionsText + 5, wrapper_pushbutton_func, &r);
+    keywidget_init(QUIT_BUTTON, 'x', wrapper_pushbutton_func);
+    opanel_redraw(TRUE);
 }
 
 #if defined(VFX1_SUPPORT) || defined(CTM_SUPPORT)

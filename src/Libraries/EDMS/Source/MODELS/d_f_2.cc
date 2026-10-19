@@ -189,6 +189,7 @@ void dirac_mechanicals(int object, Q F[3], Q T[3]) {
     //              Controls...
     //              -----------
     F[0] += (1 - BC_test) * I[object][0]; // Control inputs...
+    F[1] -= (1 - BC_test) * I[object][4]; // Local -Y is camera-right; collision response stays active.
 
     T[0] += I[object][1];                    //                            - .1*FW[1];
     T[1] += -1.5 * gamma_dot + I[object][3]; //           + .1*FW[0];

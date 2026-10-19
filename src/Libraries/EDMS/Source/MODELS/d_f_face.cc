@@ -298,6 +298,15 @@ void EDMS_control_Dirac_frame(physics_handle ph, fix forward, fix pitch, fix yaw
     control_dirac_frame(on, F, P, Y, R);
 }
 
+void EDMS_set_Dirac_strafe(physics_handle ph, fix strafe) {
+    if (ph < 0 || ph >= MAX_OBJ) return;
+    int on = ph2on[ph];
+    if (on < 0 || on >= MAX_OBJ || I[on][30] != D_FRAME) return;
+    Q side;
+    side.fix_to(strafe);
+    I[on][4] = 3 * side;
+}
+
 // Access to the Dirac matrix for the main game.
 fix *EDMS_Dirac_basis(void) {
     return Dirac_basis;

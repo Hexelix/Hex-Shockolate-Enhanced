@@ -20,16 +20,29 @@ def settings(suffix):
 log_args,log_item=settings('LOG/src/log.c')
 log_obj=out/'logging.o'
 subprocess.run(log_args+['-c',log_item['file'],'-o',str(log_obj)],cwd=log_item['directory'],check=True)
-for test,source in [('yaw','EDMS/Source/interfac.cc'),('medic','GameSrc/drugs.c'),('berserk','GameSrc/drugs.c'),('berserk_integration','GameSrc/drugs.c'),('player_save','RES/Source/resacc.c'),('inventory','GameSrc/invent.c'),('ecology','GameSrc/ecology.c'),('save_preflight','GameSrc/gamewrap.c'),('crash_report','MacSrc/crash_report.c')]:
+for test,source in [('yaw','EDMS/Source/interfac.cc'),('medic','GameSrc/drugs.c'),('berserk','GameSrc/drugs.c'),('berserk_integration','GameSrc/drugs.c'),('player_save','RES/Source/resacc.c'),('inventory','GameSrc/invent.c'),('ecology','GameSrc/ecology.c'),('save_preflight','GameSrc/gamewrap.c'),('crash_report','MacSrc/crash_report.c'),('cyber_controls','GameSrc/physics.c')]:
     args,item=settings(source)
     obj=out/(test+'.o')
-    if test not in ('inventory','ecology'):
+    if test not in ('inventory','ecology','cyber_controls'):
         subprocess.run(args+['-c',item['file'],'-o',str(obj)],cwd=item['directory'],check=True)
     if test=='player_save': args,_=settings('GameSrc/drugs.c')
     harness=root/'tests'/(test+('.cpp' if test=='yaw' else '.c'))
     exe=out/test
-    subprocess.run(args+[str(harness)]+([] if test in ('inventory','ecology') else [str(obj)])+[str(log_obj),'-Wl,--gc-sections','-o',str(exe)],cwd=item['directory'],check=True)
+    subprocess.run(args+[str(harness)]+([] if test in ('inventory','ecology','cyber_controls') else [str(obj)])+[str(log_obj),'-Wl,--gc-sections','-o',str(exe)],cwd=item['directory'],check=True)
     subprocess.run([str(exe)],check=True)
+
+args,item=settings('EDMS/Source/MODELS/d_f_face.cc')
+objects=[]
+for suffix in ['EDMS/Source/MODELS/d_f_face.cc','EDMS/Source/MODELS/d_frame.cc']:
+    extra,entry=settings(suffix)
+    obj=out/('cyber-'+pathlib.Path(suffix).stem+'.o')
+    subprocess.run(extra+['-c',entry['file'],'-o',str(obj)],cwd=entry['directory'],check=True)
+    objects.append(str(obj))
+exe=out/'cyber-strafe'
+subprocess.run(args+[str(root/'tests/cyber_strafe.cpp')]+objects+[
+    str(build/'src/Libraries/libFIXPP_LIB.a'),str(build/'src/Libraries/libFIX_LIB.a'),
+    str(log_obj),'-lm','-Wl,--gc-sections','-o',str(exe)],cwd=item['directory'],check=True)
+subprocess.run([str(exe)],check=True)
 
 # Link the real screen allocator and conversion/projection code to SDL's dummy
 # video backend; no proprietary game assets or display server are needed.
@@ -37,6 +50,13 @@ args,item=settings('MacSrc/ShockBitmap.c')
 link_args=shlex.split((build/'CMakeFiles/systemshock.dir/link.txt').read_text())
 sdl_library=next((a for a in link_args if 'libSDL2' in a and 'mixer' not in a and 'main' not in a), '-lSDL2')
 gl_library=next((a for a in link_args if 'libGL.' in a), '-lGL')
+pref_args,pref_item=settings('MacSrc/Prefs.c')
+pref_obj=out/'shadow-prefs.o'
+subprocess.run(pref_args+['-c',pref_item['file'],'-o',str(pref_obj)],cwd=pref_item['directory'],check=True)
+pref_exe=out/'shadow-prefs'
+subprocess.run(pref_args+[str(root/'tests/shadow_prefs.c'),str(pref_obj),str(log_obj),
+    sdl_library,'-Wl,--gc-sections','-o',str(pref_exe)],cwd=pref_item['directory'],check=True)
+subprocess.run([str(pref_exe)],check=True)
 objects=[]
 for suffix in ['MacSrc/ShockBitmap.c','GameSrc/gr2ss.c','2D/Source/mode.c','3D/Source/fov.c']:
     extra,entry=settings(suffix)

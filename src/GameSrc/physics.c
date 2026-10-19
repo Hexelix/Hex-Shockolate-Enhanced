@@ -388,6 +388,21 @@ void state_to_objloc(State *s, ObjLoc *l) {
 ubyte old_head = 0, old_pitch = 0;
 short last_deltap = 0, last_deltah = 0;
 
+// Keep the six saved control axes intact. Only keyboard yaw is rerouted in cyber.
+static short physics_combined_axis(int axis, bool cyber, int *active_banks) {
+    short result = 0;
+    *active_banks = 0;
+    for (int bank = 0; bank < CONTROL_BANKS; ++bank) {
+        if (cyber && axis == CONTROL_XYROT && bank == KEYBD_CONTROL_BANK)
+            continue;
+        if (player_controls[bank][axis]) {
+            result += player_controls[bank][axis];
+            ++*active_banks;
+        }
+    }
+    return *active_banks ? result / *active_banks : 0;
+}
+
 errtype physics_run(void) {
     int i;
 
@@ -412,23 +427,18 @@ errtype physics_run(void) {
     // of each control is the average of its non-zero control
     // values from each control bank, or zero if all are zero.
     for (i = 0; i < DEGREES_OF_FREEDOM; i++) {
-        int b, n = 0;
-        short control = 0;
-        for (b = 0; b < CONTROL_BANKS; b++)
-            if (player_controls[b][i] != 0) {
-                control += player_controls[b][i];
-                n++;
-            }
+        int n = 0;
+        short control = physics_combined_axis(i, global_fullmap->cyber, &n);
         if (n > 0) {
             some_move = TRUE; // should really do the n!=1 for 2 and 4 as shift too
-            if (n > 1) {
-                control /= n;
-            }
         } else if (control_relax[i]) {
             relax_axis(i);
         }
         player_struct.controls[i] = control;
     }
+    short cyber_strafe = global_fullmap->cyber ? player_controls[KEYBD_CONTROL_BANK][CONTROL_XYROT] : 0;
+    if (cyber_strafe)
+        some_move = TRUE;
     update = some_move; // well, set one of them only once
     if (physics_running && time_passes) {
 		mouse_look_physics();
@@ -586,6 +596,9 @@ errtype physics_run(void) {
             // printf("EDMS_control_Dirac_frame\n");
             EDMS_control_Dirac_frame(PLAYER_PHYSICS, plr_z, plr_alpha + fix_make(mlook_vel_x, 5),
                                      plr_y - fix_make(mlook_vel_y, 5), plr_side);
+            fix strafe = fix_make(cyber_strafe, 0) / 2;
+            if (cspace_effect_times[CS_TURBO_EFF]) strafe *= 2;
+            EDMS_set_Dirac_strafe(PLAYER_PHYSICS, strafe);
         } else
 #endif
             // printf("EDMS_control_pelvis %i %i %i %i %i %i %i\n", PLAYER_PHYSICS, plr_y, plr_alpha, plr_side,

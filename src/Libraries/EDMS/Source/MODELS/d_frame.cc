@@ -177,6 +177,7 @@ void control_dirac_frame(int32_t object, Q forward, Q pitch, Q yaw, Q roll) {
     I[object][1] = pitch;
     I[object][2] = yaw;
     I[object][3] = roll;
+    I[object][4] = 0; // Side thrust is supplied separately each tick; pause clears it.
 }
 
 //	Sets up everything needed to make the Dirac frame object, including conversion
@@ -269,6 +270,7 @@ int32_t make_Dirac_frame(Q init_state[6][3], Q params[10]) {
         for (int copy = 0; copy < 10; copy++) {
             I[object_number][copy + 20] = params[copy];
         }
+        I[object_number][4] = 0;
         I[object_number][IDOF_MODEL] = D_FRAME; // Hey, you are what you eat.
 
         //		Now tell Soliton where to look for the equations of motion...

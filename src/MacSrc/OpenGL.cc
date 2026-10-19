@@ -58,6 +58,7 @@ struct Shader {
     GLint uniProj;
     GLint uniNightSight;
     GLint uniMutant;
+    GLint uniShadowLift;
     GLint tcAttrib;
     GLint lightAttrib;
     GLint colorAttrib;
@@ -237,6 +238,7 @@ static int CreateShader(const char *vertexShaderFile, const char *fragmentShader
     outShader->uniProj = glGetUniformLocation(shaderProgram, "proj");
     outShader->uniNightSight = glGetUniformLocation(shaderProgram, "nightsight");
     outShader->uniMutant = glGetUniformLocation(shaderProgram, "mutant");
+    outShader->uniShadowLift = glGetUniformLocation(shaderProgram, "shadowLift");
     outShader->tcAttrib = glGetAttribLocation(shaderProgram, "texcoords");
     outShader->lightAttrib = glGetAttribLocation(shaderProgram, "light");
     outShader->colorAttrib = glGetAttribLocation(shaderProgram, "color");
@@ -431,9 +433,18 @@ static void updatePalette(SDL_Palette *palette, bool transparent) {
 
 static bool nightsight_active() { return WareActive(player_struct.hardwarez_status[HARDWARE_GOGGLE_INFRARED]); }
 
+static void update_shadow_lift() {
+    float lift = lg_max(0, lg_min(30, gShockPrefs.doShadowLift)) / 100.0f;
+    glUseProgram(textureShaderProgram.shaderProgram);
+    glUniform1f(textureShaderProgram.uniShadowLift, lift);
+    glUseProgram(colorShaderProgram.shaderProgram);
+    glUniform1f(colorShaderProgram.uniShadowLift, lift);
+}
+
 void opengl_start_frame() {
     SDL_GL_MakeCurrent(window, context);
 
+    update_shadow_lift();
     // Start rendering to our frame buffer canvas
     BindFrameBuffer(&backupBuffer);
 

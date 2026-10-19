@@ -1,4 +1,20 @@
-Hex-Shockolate-Enhanced v0.4.1 — texture-cache fixes and crash logging
+Hex-Shockolate-Enhanced v0.4.2 — shadow brightness and cyberspace strafing
+
+NEW IN v0.4.2
+OpenGL deep shadows are gently lifted without changing brighter lighting.
+Start with the default 12% strength. To tune by eye, open:
+  Video > Rendering > Shadows
+The slider runs from 0% (original darkness) to 30% (strong lift). It is saved
+as shadow-lift in prefs.txt. The effect fades out smoothly as lighting rises;
+bright lighting, fully emissive textures, HUD and night vision retain their
+previous appearance. This is an OpenGL setting; software rendering is unchanged.
+
+In cyberspace, keyboard turn-left/right bindings now produce lateral thrust.
+With default bindings this makes A/D strafe, like normal gameplay. Existing
+keybinds work without editing keybinds.txt. Mouse look/pointer steering still
+turns, and roll controls retain their existing function. Thrust is relative to
+your orientation and still uses the normal collision response. Releasing the
+keys clears the lateral input; turbo also boosts sideways thrust.
 
 CRASH INVESTIGATION
 The reported v0.4.0 crash ended without a fault message; its precise cause is
@@ -35,7 +51,7 @@ mode; the chosen resolution controls rendering and may be scaled to that output.
 For native 4K output, use a 4K display and desktop/Steam display mode.
 
 SAVE COMPATIBILITY
-v0.3.3 and v0.4.0 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
+v0.3.3 through v0.4.1 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
 incompatible and are rejected before the world or working file is changed.
 All balance changes and the 28 general / 10 weapon slots are retained.
 

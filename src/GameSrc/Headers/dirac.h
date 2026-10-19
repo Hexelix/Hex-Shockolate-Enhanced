@@ -34,3 +34,4 @@ void EDMS_get_Dirac_frame_viewpoint(physics_handle ph, State *s);
 void EDMS_set_Dirac_frame_parameters(physics_handle ph, Dirac_frame *d);
 void EDMS_get_Dirac_frame_parameters(physics_handle ph, Dirac_frame *d);
 void EDMS_control_Dirac_frame(physics_handle ph, fix forward, fix pitch, fix yaw, fix roll);
+void EDMS_set_Dirac_strafe(physics_handle ph, fix strafe);
