@@ -138,6 +138,8 @@ char *get_drug_name(int n, char *buf) {
 // Berserk uses elapsed game time, so pausing and save/load preserve its duration.
 void drug_berserk_use(void) {
     player_struct.berserk_started_at = player_struct.game_time;
+    INFO("Hex v0.3.1 diagnostic: berserk applied; game_ticks=%u, target_ticks=%u, status=%d, detox_status=%d",
+         player_struct.game_time, BERSERK_DURATION_TICKS, STATUS(DRUG_LSD), STATUS(DRUG_DETOX));
 }
 
 bool drug_berserk_expired(void) {
@@ -179,6 +181,11 @@ void drug_use(int n) {
 // Uninstall the effect of drug n as appropriate.
 
 void drug_wear_off(int n) {
+    if (n == DRUG_LSD)
+        INFO("Berserk timer wearoff: elapsed_ticks=%u (%.2f game seconds), status=%d",
+             (uint32_t)(player_struct.game_time - player_struct.berserk_started_at),
+             (double)(uint32_t)(player_struct.game_time - player_struct.berserk_started_at) / CIT_CYCLE,
+             STATUS(n));
     player_struct.drug_intensity[n] = 0;
     player_struct.drug_status[n] = 0; // in case not called from update loop
     if (n == DRUG_LSD)
@@ -210,6 +217,11 @@ void drugs_update() {
 
         // Reset the last update
         player_struct.last_drug_update = player_struct.game_time;
+        if (STATUS(DRUG_LSD) > 0)
+            INFO("Berserk active: elapsed_ticks=%u (%.2f game seconds), status=%d, detox_status=%d",
+                 (uint32_t)(player_struct.game_time - player_struct.berserk_started_at),
+                 (double)(uint32_t)(player_struct.game_time - player_struct.berserk_started_at) / CIT_CYCLE,
+                 STATUS(DRUG_LSD), STATUS(DRUG_DETOX));
 
         // drugs should wear out faster if health=low or fatigue=high
         // THIS FORMULA SHOULD BE MADE INTELLIGENT.
@@ -626,6 +638,11 @@ void drug_detox_use() {
 
 void wear_off_drug(int i) {
     int laststat = STATUS(i);
+    if (i == DRUG_LSD && laststat > 0)
+        INFO("Berserk cleared by Detox/player regeneration: elapsed_ticks=%u (%.2f game seconds), detox_status=%d, hp=%u",
+             (uint32_t)(player_struct.game_time - player_struct.berserk_started_at),
+             (double)(uint32_t)(player_struct.game_time - player_struct.berserk_started_at) / CIT_CYCLE,
+             STATUS(DRUG_DETOX), player_struct.hit_points);
     STATUS(i) = 0;
     if (i == DRUG_LSD)
         player_struct.berserk_started_at = 0;

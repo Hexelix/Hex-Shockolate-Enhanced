@@ -435,6 +435,7 @@ uchar kill_player(void) {
 }
 
 void regenerate_player(void) {
+    INFO("Player regeneration: clearing active patches");
     extern void wear_off_drug(int i);
     extern void regenetron_door_hack(void);
     int i;

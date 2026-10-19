@@ -43,6 +43,7 @@ uint32_t *tmd_ticks;
 
 void InitMac(void) {
     INFO("Starting %s", SHOCKOLATE_VERSION);
+    INFO("Hex-Shockolate-Enhanced v0.3.1 BERSERK DIAGNOSTIC build");
     InstallShockTimers(); // needed for the tick pointer
 }
 
