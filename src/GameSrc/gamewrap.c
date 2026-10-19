@@ -315,6 +315,37 @@ errtype interpret_qvars(void) {
 
 // char saveArray[16];	//Â¥temp
 
+// Inspect the directory without registering resources. ResOpenFile() replaces
+// live resource descriptors, so even opening an incompatible save is destructive.
+errtype validate_player_save(const char *fname) {
+    FILE *file = fopen_caseless(fname, "rb");
+    ResFileHeader header;
+    ResDirHeader directory;
+    ResDirEntry entry;
+    errtype result = ERR_FREAD;
+    if (!file)
+        return result;
+    if (fread(&header, sizeof(header), 1, file) != 1 ||
+        memcmp(header.signature, "LG Res File v2\r\n", 16) != 0 ||
+        header.dirOffset < sizeof(header) ||
+        fseek(file, header.dirOffset, SEEK_SET) != 0 ||
+        fread(&directory, sizeof(directory), 1, file) != 1)
+        goto done;
+    for (unsigned i = 0; i < directory.numEntries; ++i) {
+        if (fread(&entry, sizeof(entry), 1, file) != 1)
+            goto done;
+        if (entry.id == SAVE_GAME_ID_BASE + 1) {
+            if (entry.size == PlayerLayout_M32.dsize ||
+                entry.size == PlayerLayout_M64.dsize)
+                result = OK;
+            goto done;
+        }
+    }
+done:
+    fclose(file);
+    return result;
+}
+
 errtype load_game(char *fname) {
     int filenum;
     ObjID old_plr;
@@ -324,16 +355,25 @@ errtype load_game(char *fname) {
 
     INFO("load_game %s", fname);
 
+    // Reject before clearing the current world or overwriting its backing file.
+    if (validate_player_save(fname) != OK) {
+        ERROR("Unreadable or incompatible save: start a new game for the expanded inventory build.");
+        return ERR_FREAD;
+    }
+
     empty_slate();
 
     closedown_game(TRUE);
     // KLC - don't do this here   stop_music();
 
     // Copy the save file into the current game
-    copy_file(fname, CURRENT_GAME_FNAME);
+    if (copy_file(fname, CURRENT_GAME_FNAME) != OK)
+        return ERR_FREAD;
 
     // Load in player and current level
     filenum = ResOpenFile(CURRENT_GAME_FNAME);
+    if (filenum < 0)
+        return ERR_FREAD;
     old_plr = player_struct.rep;
     orig_lvl = player_struct.level;
 

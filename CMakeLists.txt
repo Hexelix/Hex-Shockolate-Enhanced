@@ -388,6 +388,11 @@ add_definitions(
 
 add_executable(systemshock ${MAC_SRC})
 
+# OpenGL loads these relative to the executable's working directory.
+add_custom_command(TARGET systemshock POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/shaders" "$<TARGET_FILE_DIR:systemshock>/shaders")
+
 add_library(GAME_LIB ${GAME_SRC})
 
 # MINGW additional linker options

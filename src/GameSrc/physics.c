@@ -284,6 +284,8 @@ errtype compare_locs(void) {
 
         // Abort physics if bad karma
         if (physics_running && time_passes && (me_tiletype(newElem) == TILE_SOLID)) {
+            ERROR("Player entered solid tile: level=%d, tile=(%d,%d), previous=(%d,%d), object=%d",
+                  player_struct.level, PLAYER_BIN_X, PLAYER_BIN_Y, old_x, old_y, PLAYER_OBJ);
             physics_running = FALSE;
             critical_error(CRITERR_EXEC | 2);
         }

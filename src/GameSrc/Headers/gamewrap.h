@@ -54,6 +54,7 @@ errtype copy_file(char *src_fname, char *dest_fname);
 errtype save_game(char *fname, char *comment);
 // errtype save_game(FSSpec *fSpec);
 errtype load_game(char *fname);
+errtype validate_player_save(const char *fname);
 // errtype load_game(FSSpec *loadSpec);
 errtype write_level_to_disk(int idnum, uchar flush_mem);
 uchar create_initial_game_func(short keycode, ulong context, void *data);

@@ -71,6 +71,7 @@ src/Libraries/glm
 SSHOCK.lnk
 # Local Linux build outputs and imported game data
 /build-linux/
+/build-recovery-clean/
 /mixer-build/
 /res/
 /systemshock

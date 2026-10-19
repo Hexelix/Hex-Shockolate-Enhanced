@@ -20,7 +20,7 @@ def settings(suffix):
 log_args,log_item=settings('LOG/src/log.c')
 log_obj=out/'logging.o'
 subprocess.run(log_args+['-c',log_item['file'],'-o',str(log_obj)],cwd=log_item['directory'],check=True)
-for test,source in [('yaw','EDMS/Source/interfac.cc'),('medic','GameSrc/drugs.c'),('berserk','GameSrc/drugs.c'),('berserk_integration','GameSrc/drugs.c'),('player_save','RES/Source/resacc.c'),('inventory','GameSrc/invent.c'),('ecology','GameSrc/ecology.c')]:
+for test,source in [('yaw','EDMS/Source/interfac.cc'),('medic','GameSrc/drugs.c'),('berserk','GameSrc/drugs.c'),('berserk_integration','GameSrc/drugs.c'),('player_save','RES/Source/resacc.c'),('inventory','GameSrc/invent.c'),('ecology','GameSrc/ecology.c'),('save_preflight','GameSrc/gamewrap.c')]:
     args,item=settings(source)
     obj=out/(test+'.o')
     if test not in ('inventory','ecology'):

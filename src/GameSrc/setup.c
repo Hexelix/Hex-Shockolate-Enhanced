@@ -837,11 +837,21 @@ errtype load_that_thar_game(int which_slot) {
     if (valid_save & (1 << which_slot)) {
         draw_sg_slot(-1); // highlight the current save game slot with SELECTED_COLOR
 
+        Poke_SaveName(which_slot);
+        // The menu must preflight too: object_data_load resets the world and
+        // player_create_initial changes physics before load_game is called.
+        if (validate_player_save(save_game_name) != OK) {
+            ERROR("Unreadable or incompatible save: %s", save_game_name);
+            strcpy(comments[which_slot], "<< INVALID GAME >>");
+            uiHideMouse(NULL);
+            journey_continue_func(TRUE);
+            return ERR_FREAD;
+        }
+
         clear_player_data = TRUE; // initializes the player struct in object_data_load
         object_data_load();
         player_create_initial();
         player_struct.level = 0xFF; // make sure we load textures
-        Poke_SaveName(which_slot);
         change_mode_func(0, 0, GAME_LOOP);
         retval = load_game(save_game_name);
         if (retval != OK) {
