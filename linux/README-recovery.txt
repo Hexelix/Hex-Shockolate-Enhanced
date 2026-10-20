@@ -1,6 +1,24 @@
-Hex-Shockolate-Enhanced v0.4.3 — puzzle cursor recovery
+Hex-Shockolate-Enhanced v0.4.4 — OpenGL missing bitmap recovery
 
-NEW IN v0.4.3
+NEW IN v0.4.4
+The v0.4.3 crash log identifies a null bitmap pointer read at bm->flags in
+opengl_light_tmap (executable offset 0x3a8f5, OpenGL.cc line 768).
+Textured polygon and bitmap draws now reject missing/invalid bitmaps and
+vertices before dereferencing them. Texture conversion and refresh failures
+stop the draw instead of drawing with a previously bound texture. The cache
+entry points also reject missing bitmaps. A warning records the first invalid
+polygon bitmap. Missing bitmap resource locks also log resource identifiers
+(up to eight warnings), to help locate a missing model/object asset.
+
+The log does not identify the object/resource that supplied the missing
+bitmap. This update prevents the identified dereference; it does not claim
+to repair the underlying missing asset or guarantee all crashes are resolved.
+An affected polygon is skipped. Regression tests exercise the actual OpenGL
+draw entry points, conversion failures, unchanged framebuffer contents on
+rejected draws, and a successful polygon draw after a failed conversion.
+Real Steam Deck gameplay still needs validation.
+
+RETAINED FROM v0.4.3
 The grid puzzle cursor now uses storage sized to the selected resolution.
 The old fixed 1016-byte buffer overflowed at Deck resolution and overwrote
 the cursor bitmap and cursor structure. Repeated puzzle openings and video
@@ -66,7 +84,7 @@ mode; the chosen resolution controls rendering and may be scaled to that output.
 For native 4K output, use a 4K display and desktop/Steam display mode.
 
 SAVE COMPATIBILITY
-v0.3.3 through v0.4.2 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
+v0.3.3 through v0.4.3 ten-weapon saves remain compatible. Nine-weapon and earlier saves are
 incompatible and are rejected before the world or working file is changed.
 All balance changes and the 28 general / 10 weapon slots are retained.
 

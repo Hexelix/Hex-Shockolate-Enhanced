@@ -43,7 +43,7 @@ uint32_t *tmd_ticks;
 
 void InitMac(void) {
     INFO("Starting %s", SHOCKOLATE_VERSION);
-    INFO("Hex-Shockolate-Enhanced v0.4.3 puzzle cursor recovery; general_slots=28, weapon_slots=10");
+    INFO("Hex-Shockolate-Enhanced v0.4.4 OpenGL missing bitmap recovery; general_slots=28, weapon_slots=10");
     InstallShockTimers(); // needed for the tick pointer
 }
 

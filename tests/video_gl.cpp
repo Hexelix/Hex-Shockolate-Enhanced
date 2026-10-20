@@ -1,11 +1,23 @@
 // Real offscreen OpenGL shaders/framebuffers; no game data is needed.
+#include <SDL.h>
+static bool fail_surface_conversion;
+static SDL_Surface *test_convert_surface(SDL_Surface *surface, Uint32 format, Uint32 flags) {
+    if (fail_surface_conversion) {
+        SDL_SetError("injected texture conversion failure");
+        return nullptr;
+    }
+    return SDL_ConvertSurfaceFormat(surface, format, flags);
+}
+#define SDL_ConvertSurfaceFormat test_convert_surface
 #include "../src/MacSrc/OpenGL.cc"
+#undef SDL_ConvertSurfaceFormat
 #include <cassert>
 extern "C" {
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Palette *sdlPalette;
 ShockPrefs gShockPrefs;
+Player player_struct;
 uint32_t texture_test_clock = 100;
 volatile uint32_t *tmd_ticks = &texture_test_clock;
 extern uchar *grd_unpack_buf;
@@ -59,6 +71,65 @@ int main(int argc, char **argv) {
     SDL_RenderSetLogicalSize(renderer, 1280, 800);
     SDL_GL_MakeCurrent(window, initial);
     assert(init_opengl() == 0);
+    // The attached v0.4.3 crash was bm==nullptr at bm->flags in this entry
+    // point. Reject it before touching GL state; exercise all shared paths.
+    g3s_point points[4] = {};
+    g3s_phandle vertices[4] = {points,points+1,points+2,points+3};
+    grs_vertex screen_points[4] = {};
+    grs_vertex *screen_vertices[4] = {screen_points,screen_points+1,screen_points+2,screen_points+3};
+    grs_tmap_info ti = {};
+    uchar texel = 42;
+    grs_bitmap valid = {};
+    valid.bits = &texel; valid.w = valid.h = valid.row = 1; valid.type = BMT_FLAT8;
+    BindFrameBuffer(&backupBuffer);
+    glClearColor(0,1,0,1);
+    glClear(GL_COLOR_BUFFER_BIT);
+    GLint old_binding = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D,&old_binding);
+    assert(opengl_get_texture(nullptr) == nullptr);
+    assert(!convert_texture(nullptr,false) && !set_texture(nullptr));
+    for (int n : {3,4}) {
+        assert(opengl_light_tmap(n,vertices,nullptr) == CLIP_ALL);
+        assert(opengl_draw_tmap(n,vertices,nullptr) == CLIP_ALL);
+    }
+    assert(opengl_bitmap(nullptr,4,screen_vertices,&ti) == CLIP_ALL);
+    assert(opengl_light_tmap(4,nullptr,&valid) == CLIP_ALL);
+    assert(opengl_bitmap(&valid,4,nullptr,&ti) == CLIP_ALL);
+    assert(opengl_bitmap(&valid,4,screen_vertices,nullptr) == CLIP_ALL);
+    vertices[2] = nullptr;
+    screen_vertices[2] = nullptr;
+    assert(opengl_light_tmap(4,vertices,&valid) == CLIP_ALL);
+    assert(opengl_bitmap(&valid,4,screen_vertices,&ti) == CLIP_ALL);
+    vertices[2] = points+2;
+    screen_vertices[2] = screen_points+2;
+    for (int which=0; which<4; ++which) {
+        grs_bitmap bad = valid;
+        if (which==0) bad.bits = nullptr;
+        if (which==1) bad.w = 0;
+        if (which==2) bad.h = -1;
+        if (which==3) bad.row = 0;
+        assert(!convert_texture(&bad,false) && !set_texture(&bad));
+        assert(opengl_light_tmap(4,vertices,&bad) == CLIP_ALL);
+        assert(opengl_bitmap(&bad,4,screen_vertices,&ti) == CLIP_ALL);
+    }
+    fail_surface_conversion = true;
+    assert(!convert_texture(&valid,false));
+    assert(!set_texture(&valid));
+    assert(opengl_light_tmap(4,vertices,&valid) == CLIP_ALL);
+    assert(opengl_bitmap(&valid,4,screen_vertices,&ti) == CLIP_ALL);
+    fail_surface_conversion = false;
+    assert(texturesByBitsPtr.empty());
+    GLint new_binding = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D,&new_binding);
+    assert(old_binding == new_binding);
+    uchar untouched[4] = {};
+    glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,untouched);
+    assert(untouched[0]==0 && untouched[1]==255 && untouched[2]==0);
+    assert(glGetError() == GL_NO_ERROR);
+    assert(convert_texture(&valid,false) && set_texture(&valid));
+    opengl_clear_texture_cache();
+    BindFrameBuffer(nullptr);
+    puts("PASS missing textures: exact null-bitmap draw, empty/invalid bitmaps, missing vertices, conversion failures, no stale draw, valid upload recovery");
     // Real shader readback: shadows lift, highlights/HUD/emissive/night sight do not.
     bind_texture(dynTexture);
     glPixelStorei(GL_UNPACK_ROW_LENGTH,0);
@@ -88,6 +159,26 @@ int main(int argc, char **argv) {
     for (int i = 0; i < 256; ++i) colors[i] = SDL_Color{Uint8(i),Uint8(i),Uint8(i),255};
     SDL_SetPaletteColors(opaquePalette, colors, 0, 256);
     SDL_SetPaletteColors(transparentPalette, colors, 0, 256);
+    // A valid polygon must still draw after the rejected inputs above.
+    grs_canvas canvas = {};
+    grd_canvas = &canvas;
+    points[0].x = points[2].x = -65536;
+    points[1].x = points[3].x = 65536;
+    points[0].y = points[1].y = -65536;
+    points[2].y = points[3].y = 65536;
+    for (auto &point : points) point.z = 32768;
+    BindFrameBuffer(&backupBuffer);
+    glViewport(0,0,4,4);
+    glDisable(GL_DEPTH_TEST); glDisable(GL_STENCIL_TEST); glDisable(GL_CULL_FACE);
+    glDisable(GL_ALPHA_TEST);
+    glClearColor(0,0,0,1); glClear(GL_COLOR_BUFFER_BIT);
+    assert(opengl_light_tmap(4,vertices,&valid) == CLIP_NONE);
+    glReadPixels(1,1,1,1,GL_RGBA,GL_UNSIGNED_BYTE,untouched);
+    assert(untouched[0]==42 && untouched[1]==42 && untouched[2]==42);
+    assert(glGetError() == GL_NO_ERROR);
+    opengl_clear_texture_cache();
+    grd_canvas = nullptr;
+    BindFrameBuffer(nullptr);
     uchar pixels[] = {1,2,3,4,5,99,99,99,6,7,8,9,10,99,99,99};
     grs_bitmap bm = {};
     bm.bits = pixels; bm.w = 5; bm.h = 2; bm.row = 8; bm.type = BMT_FLAT8;

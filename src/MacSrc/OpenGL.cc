@@ -602,6 +602,8 @@ static bool opengl_cache_texture(CachedTexture toCache, grs_bitmap *bm) {
 }
 
 static CachedTexture *opengl_get_texture(grs_bitmap *bm) {
+    if (!bm)
+        return nullptr;
     auto iter = texturesByBitsPtr.find(texture_key(bm));
     if (iter != texturesByBitsPtr.end()) {
         return &iter->second;
@@ -657,19 +659,25 @@ static bool copy_texture_pixels(const grs_bitmap *bm, SDL_Surface *surface) {
     return true;
 }
 
-static void convert_texture(grs_bitmap *bm, bool locked) {
+static bool valid_texture_bitmap(const grs_bitmap *bm) {
+    return bm && bm->bits && bm->w > 0 && bm->h > 0 && bm->row >= bm->w;
+}
+
+static bool convert_texture(grs_bitmap *bm, bool locked) {
+    if (!valid_texture_bitmap(bm))
+        return false;
     SDL_Surface *surface = SDL_CreateRGBSurface(0, bm->w, bm->h, 8, 0, 0, 0, 0);
     if (!copy_texture_pixels(bm, surface)) {
         WARN("Cannot copy OpenGL texture (%d x %d, type %d)", bm->w, bm->h, bm->type);
         SDL_FreeSurface(surface);
-        return;
+        return false;
     }
     setPaletteForBitmap(bm, surface);
     SDL_Surface *rgba = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
     if (!rgba) {
         SDL_FreeSurface(surface);
         WARN("Cannot convert OpenGL texture: %s", SDL_GetError());
-        return;
+        return false;
     }
     CachedTexture ct{};
     ct.bitmap = surface;
@@ -680,10 +688,12 @@ static void convert_texture(grs_bitmap *bm, bool locked) {
         SDL_FreeSurface(surface);
         SDL_FreeSurface(rgba);
     }
+    // A full cache still uploads successfully to dynTexture.
+    return true;
 }
 
 void opengl_cache_wall_texture(int idx, int size, grs_bitmap *bm) {
-    if (idx < NUM_LOADED_TEXTURES) {
+    if (idx >= 0 && idx < NUM_LOADED_TEXTURES && valid_texture_bitmap(bm)) {
         CachedTexture *t = opengl_get_texture(bm);
         if (t == nullptr) {
             convert_texture(bm, true);
@@ -695,12 +705,13 @@ void opengl_cache_wall_texture(int idx, int size, grs_bitmap *bm) {
     }
 }
 
-static void set_texture(grs_bitmap *bm) {
+static bool set_texture(grs_bitmap *bm) {
+    if (!valid_texture_bitmap(bm))
+        return false;
     CachedTexture *t = opengl_get_texture(bm);
     if (t == nullptr) {
         // Not cached, have to make it
-        convert_texture(bm, false);
-        return;
+        return convert_texture(bm, false);
     }
 
     bool isDirty = false;
@@ -709,18 +720,20 @@ static void set_texture(grs_bitmap *bm) {
         // Locked surfaces only need to update once
         if (palette_dirty && t->lastDrawTime != *tmd_ticks) {
             if (!copy_texture_pixels(bm, t->bitmap))
-                return;
+                return false;
             SDL_SetSurfacePalette(t->bitmap, transparentPalette); // Walls should show stars
-            SDL_BlitSurface(t->bitmap, nullptr, t->converted, nullptr);
+            if (SDL_BlitSurface(t->bitmap, nullptr, t->converted, nullptr) != 0)
+                return false;
 
             isDirty = true;
         }
     } else {
         if (!copy_texture_pixels(bm, t->bitmap))
-            return;
+            return false;
 
         setPaletteForBitmap(bm, t->bitmap);
-        SDL_BlitSurface(t->bitmap, nullptr, t->converted, nullptr);
+        if (SDL_BlitSurface(t->bitmap, nullptr, t->converted, nullptr) != 0)
+            return false;
 
         isDirty = true;
     }
@@ -732,6 +745,7 @@ static void set_texture(grs_bitmap *bm) {
         glPixelStorei(GL_UNPACK_ROW_LENGTH, t->converted->pitch / 4);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm->w, bm->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->converted->pixels);
     }
+    return true;
 }
 
 static void draw_vertex(const g3s_point &vertex, GLint tcAttrib, GLint lightAttrib) {
@@ -764,12 +778,29 @@ int opengl_light_tmap(int n, g3s_phandle *vp, grs_bitmap *bm) {
         return CLIP_ALL;
     }
 
+    // Some model/resource paths can supply no bitmap. Check before flags or
+    // cache keys are read (the v0.4.3 crash was a null bm->flags access).
+    if (!valid_texture_bitmap(bm)) {
+        static bool warned = false;
+        if (!warned) {
+            WARN("Skipping OpenGL polygon with missing/invalid bitmap (bitmap=%p)", (void *)bm);
+            warned = true;
+        }
+        return CLIP_ALL;
+    }
+    if (!vp)
+        return CLIP_ALL;
+    for (int i = 0; i < n; ++i)
+        if (!vp[i])
+            return CLIP_ALL;
+
     SDL_GL_MakeCurrent(window, context);
     set_blend_mode(bm->flags & BMF_TRANS);
 
     glUseProgram(textureShaderProgram.shaderProgram);
 
-    set_texture(bm);
+    if (!set_texture(bm))
+        return CLIP_ALL;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, get_texture_min_func());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, get_texture_mag_func());
 
@@ -802,6 +833,11 @@ int opengl_bitmap(grs_bitmap *bm, int n, grs_vertex **vpl, grs_tmap_info *ti) {
         WARN("Unexpected number of bitmap vertices (%d)", n);
         return CLIP_ALL;
     }
+    if (!valid_texture_bitmap(bm) || !vpl || !ti)
+        return CLIP_ALL;
+    for (int i = 0; i < n; ++i)
+        if (!vpl[i])
+            return CLIP_ALL;
 
     SDL_GL_MakeCurrent(window, context);
     set_blend_mode(bm->flags & BMF_TRANS);
@@ -813,7 +849,8 @@ int opengl_bitmap(grs_bitmap *bm, int n, grs_vertex **vpl, grs_tmap_info *ti) {
     glUniformMatrix4fv(textureShaderProgram.uniView, 1, false, IdentityMatrix);
     glUniformMatrix4fv(textureShaderProgram.uniProj, 1, false, IdentityMatrix);
 
-    set_texture(bm);
+    if (!set_texture(bm))
+        return CLIP_ALL;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, get_texture_min_func());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, get_texture_mag_func());
 

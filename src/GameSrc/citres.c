@@ -40,7 +40,13 @@ grs_bitmap *lock_bitmap_from_ref_anchor(Ref r, LGRect *anchor) {
         return (NULL);
     f = RefLock(r);
     if (f == NULL) {
-        //      Warning(("Could not lock bitmap %d!",r));
+        // Preserve the resource identity if a missing model/object bitmap
+        // later reaches the renderer. Limit repeats from a visible object.
+        static unsigned missing_bitmap_warnings;
+        if (missing_bitmap_warnings < 8) {
+            WARN("Missing bitmap resource: id=%u index=%u", (unsigned)REFID(r), (unsigned)REFINDEX(r));
+            ++missing_bitmap_warnings;
+        }
         return (NULL);
     }
     f->bm.bits = (uchar *)(f + 1);
